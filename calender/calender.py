@@ -85,7 +85,6 @@ async def process_image(image_input: ImageInput):
 
         # DateProcessor를 사용하여 최종 처리
         print("LLM Result Postprocessing Start...")
-
         # json key값 date 형식 정규화(11일 -> 11, 11일 화 -> 11)
         event_processor = DateProcessor(response)
         processed_event = event_processor.process()
@@ -93,7 +92,7 @@ async def process_image(image_input: ImageInput):
 
         # 결과를 json 파일로 저장(or DB 저장(추후))
         file_name = image_input.image_path.split("/")[-1].split(".")[0] + ".json"
-        with open(f"./result/{file_name}", "w") as f:
+        with open(f"./result/{file_name}", "w", encoding="utf-8") as f:
             json.dump(processed_event, f, ensure_ascii=False, indent=2)
 
         return processed_event
@@ -106,21 +105,3 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, port=8000)
-
-
-"""
-# 환경설정 순서
-1. conda create -n new_env python=3.11.0
-2. conda activate new_env
-3. pip install -r requirements.txt
-4. conda install -c conda-forge tesseract
-
-
-# 실행 예시
-1. python calender.py 실행
-    1. http://127.0.0.1:8000/docs image_path 입력 후 실행   
-    2. 새로운 터미널 -> 
-    curl -X POST "http://localhost:8000/process_image" \
-        -H "Content-Type: application/json" \
-        -d '{"image_path": "./images/4월공지.jpg"}'
-"""
