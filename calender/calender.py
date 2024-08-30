@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List
 from dotenv import load_dotenv
 import json
+import os
 
 from util.date_util import DateProcessor
 
@@ -17,6 +18,8 @@ from langchain_core.pydantic_v1 import Field
 
 from BetterOCR import betterocr
 
+if not os.path.exists("result"):
+    os.mkdir("result")
 
 set_llm_cache(InMemoryCache())
 
@@ -52,6 +55,7 @@ prompt = PromptTemplate(
     partial_variables={"format_instructions": output_parser.get_format_instructions()},
     template=template,
 )
+
 
 # chain 생성
 chain = prompt | model | output_parser
@@ -92,6 +96,7 @@ async def process_image(image_input: ImageInput):
 
         # 결과를 json 파일로 저장(or DB 저장(추후))
         file_name = image_input.image_path.split("/")[-1].split(".")[0] + ".json"
+
         with open(f"./result/{file_name}", "w", encoding="utf-8") as f:
             json.dump(processed_event, f, ensure_ascii=False, indent=2)
 
