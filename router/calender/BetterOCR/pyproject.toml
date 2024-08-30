@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "betterocr"
+version = "1.2.0"
+description = "Better text detection by combining OCR engines with LLM."
+authors = ["Junho Yeo <i@junho.io>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+openai = { version = "^1.28.1", allow-prereleases = true }
+pytesseract = "^0.3.10"
+easyocr = "^1.7.1"
+numpy = "^1.26.4"
+pandas = "^2.2.2"
+opencv-python = "^4.9.0.80"
+
+[tool.poetry.group.dev.dependencies]
+matplotlib = "^3.8.4"
+pillow = "^10.3.0"
+pytest = "^8.2.0"
+
+[tool.poetry.group.pororo.dependencies]
+torch = "^2.1.0"
+torchvision = "^0.16.0"
+wget = "^3.2"
+scikit-image = "^0.22.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

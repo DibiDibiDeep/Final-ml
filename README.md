@@ -1,5 +1,9 @@
 # Final-ml
 
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> fdb6204a0a332fc2e612e8066d44162b182190b5
 ## 캘린더 기능 사용법
 
 ### 환경설정 순서
@@ -27,4 +31,9 @@ conda install -c conda-forge tesseract
 curl -X POST "http://localhost:8000/process_image" \
         -H "Content-Type: application/json" \
         -d '{"image_path": "./images/sch4.jpg"}'
+<<<<<<< HEAD
 ```
+=======
+```
+>>>>>>> a74e5f3f09d1de7368a39cfdafbab84e6a0ba16d
+>>>>>>> fdb6204a0a332fc2e612e8066d44162b182190b5
