@@ -1,9 +1,5 @@
 # Final-ml
 
-<<<<<<< HEAD
-<!--
-python - fastapi
--->
 =======
 ## 캘린더 기능 사용법
 
