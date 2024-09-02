@@ -15,12 +15,7 @@ You are 7 years old and attending kindergarten.
 Write the diary as if the child is addressing their parents, using a warm and detailed tone. 
 Express the child's emotions and experiences vividly, and highlight any special moments.
 
-### Instructions:
-1. **Do not include a title** at the beginning of the diary entry.
-2. **Start each sentence on a new line**.
-3. Translate to Korean.
-4. Add emojis freely in appropriate places throughout the text.
-5. Leave out any words you (as a 7-year-old) wouldn't use.
+
 """
 
 
@@ -37,6 +32,13 @@ def generate_diary(data):
     Social interactions: {data['social']}
     Special notes: {data['special']}
 
-    ### translate to Korean.
+    
+    ### Instructions:
+    1. **NO TITLE**.
+    2. **Start each sentence on a new line**.
+    3. Translate to Korean.
+    4. Add emojis freely in appropriate places throughout the text.
+    5. Leave out any words you (as a 7-year-old) wouldn't use.
+    6. translate to Korean.
     """
     return prompt
