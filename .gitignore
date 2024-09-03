@@ -9,6 +9,23 @@ calender_ver1.txt
 calender_ver2.txt
 calender_ver3.txt
 *.json
+router/babydiary/tests/
+router/babydiary/test.py
+router/babydiary/samples.py
+router/babydiary/results/
+router/test-0902/
+asd.md
+app/api/calendar/images
+app/result/
+app/api/calendar/result/
+
+app/api/babydiary/requirements.txt
+app/api/calendar/requirements.txt
+
+
+
+
+# 0830 추가
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudiocode,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,linux,macos,visualstudiocode,python
