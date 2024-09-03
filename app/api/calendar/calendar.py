@@ -1,13 +1,12 @@
 import json, os
 from fastapi import HTTPException, APIRouter
-
 from langchain.globals import set_llm_cache
 from langchain_community.cache import InMemoryCache
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-from app.models.calendar import MonthlySchedule, ImageInput
+from app.api.calendar.models import MonthlySchedule, ImageInput
 from app.api.calendar.BetterOCR import betterocr
 from app.api.calendar.utils.date_util import DateProcessor
 

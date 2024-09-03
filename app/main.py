@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from app.api.babydiary import babydiary
 from app.api.calendar import calendar
-
 from dotenv import load_dotenv
 
 load_dotenv()
