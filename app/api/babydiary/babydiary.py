@@ -5,7 +5,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 
-from app.models.babydiary import DaycareReport
+from app.api.babydiary.models import DaycareReport
 from app.api.babydiary.prompts import template, generate_diary
 
 
