@@ -1,17 +1,18 @@
+import json, os
 from fastapi import APIRouter, HTTPException
 from fastapi import HTTPException
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 
-from models.babydiary import DaycareReport
+from app.models.babydiary import DaycareReport
+from app.api.babydiary.prompts import template, generate_diary
 
 
 # Set up the parser and prompts
 output_parser = JsonOutputParser(pydantic_object=DaycareReport)
 
 # You need to define these in your code or import them
-from .prompts import template, generate_diary
 
 prompt = PromptTemplate(
     input_variables=["report"],
@@ -37,6 +38,12 @@ async def process_report(input_notice: str):
         report = chain.invoke({"report": input_notice})
         result = chain2.invoke(report)
         report["diary"] = result
+
+        # 결과를 json 파일로 저장(or DB 저장(추후))
+        if not os.path.exists("reseults/"):
+            os.makedirs("results/")
+        with open(f"results/diary_result", "w", encoding="utf-8") as f:
+            json.dump(report, f, ensure_ascii=False, indent=2)
 
         return report
     except Exception as e:

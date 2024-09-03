@@ -1,3 +1,4 @@
+import json, os
 from fastapi import HTTPException, APIRouter
 
 from langchain.globals import set_llm_cache
@@ -6,9 +7,9 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-from models.calendar import MonthlySchedule, ImageInput
-from .BetterOCR import betterocr
-from .utils.date_util import DateProcessor
+from app.models.calendar import MonthlySchedule, ImageInput
+from app.api.calendar.BetterOCR import betterocr
+from app.api.calendar.utils.date_util import DateProcessor
 
 set_llm_cache(InMemoryCache())
 
@@ -16,7 +17,9 @@ set_llm_cache(InMemoryCache())
 model = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 output_parser = JsonOutputParser(pydantic_object=MonthlySchedule)
 
-with open("api/calendar/prompts/calendar_betterocr.txt", "r", encoding="utf-8") as file:
+with open(
+    "app/api/calendar/prompts/calendar_betterocr.txt", "r", encoding="utf-8"
+) as file:
     template = file.read()
 
 prompt = PromptTemplate(
@@ -61,6 +64,13 @@ async def process_image(image_input: ImageInput):
         event_processor = DateProcessor(response)
         processed_event = event_processor.process()
         print("LLM Result Postprocessing End...")
+
+        # 결과를 json 파일로 저장(or DB 저장(추후))
+        file_name = image_input.image_path.split("/")[-1].split(".")[0] + ".json"
+        if not os.path.exists("results/"):
+            os.makedirs("results/")
+        with open(f"results/{file_name}", "w", encoding="utf-8") as f:
+            json.dump(processed_event, f, ensure_ascii=False, indent=2)
 
         return processed_event
 
