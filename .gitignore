@@ -17,7 +17,9 @@ app/api/calendar/requirements.txt
 app/api/babydiary/requirements.txt
 results/
 images/
-
+app/results/
+app/images/
+requirements_for_windows.txt
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudiocode,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,linux,macos,visualstudiocode,python
