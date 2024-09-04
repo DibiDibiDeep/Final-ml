@@ -9,6 +9,15 @@ calender_ver1.txt
 calender_ver2.txt
 calender_ver3.txt
 *.json
+asd.md
+app/api/calendar/images
+app/result/
+app/api/calendar/result/
+app/api/calendar/requirements.txt
+app/api/babydiary/requirements.txt
+results/
+images/
+
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudiocode,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,linux,macos,visualstudiocode,python
