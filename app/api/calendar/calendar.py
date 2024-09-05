@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 import json, os
 from fastapi import HTTPException, APIRouter
 from langchain.globals import set_llm_cache
@@ -6,14 +11,12 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
-# from dotenv import load_dotenv
 
 from app.api.calendar.models import MonthlySchedule, ImageInput
 from app.api.calendar.BetterOCR import betterocr
 from app.api.calendar.utils.date_util import DateProcessor
 
 set_llm_cache(InMemoryCache())
-# load_dotenv()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 

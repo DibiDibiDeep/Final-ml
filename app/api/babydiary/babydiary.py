@@ -1,3 +1,7 @@
+from dotenv import load_dotenv
+
+load_dotenv()  # local .env에서 불러옴
+
 import json, os
 from fastapi import APIRouter, HTTPException
 from fastapi import HTTPException
@@ -5,12 +9,10 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 
-# from dotenv import load_dotenv
 
 from app.api.babydiary.models import DaycareReport
 from app.api.babydiary.prompts import template, generate_diary
 
-# load_dotenv()  # local .env에서 불러옴
 openai_api_key = os.getenv("OPENAI_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 
