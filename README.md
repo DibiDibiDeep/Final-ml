@@ -15,10 +15,7 @@ conda install -c conda-forge tesseract
 ```bash
 pip install uvicorn[standard]
 ```
-```bash
-```
 
----
 ### 실행 예시
 - `python app/main.py` 또는 `uvicorn app.main:app --reload`
 
