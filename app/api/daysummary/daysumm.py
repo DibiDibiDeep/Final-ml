@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict
 from uuid import uuid4
@@ -17,7 +17,7 @@ from langchain_milvus import Milvus
 from langchain_huggingface import HuggingFaceEmbeddings
 
 from dotenv import load_dotenv
-from util.preprocess import convert_data_structure, create_document_from_data
+from app.api.daysummary.utils.preprocess import convert_data_structure, create_document_from_data
 
 # Load environment variables
 load_dotenv()
@@ -38,7 +38,7 @@ vector_store = Milvus(
     connection_args={"uri": URI},
 )
 
-app = FastAPI()
+router = APIRouter()
 
 # 사용자 세션을 관리하기 위한 딕셔너리
 user_sessions: Dict[str, List[str]] = {}
@@ -308,7 +308,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-@app.post("/process_query")
+@router.post("/process_query")
 async def process_user_query(query: Query):
     try:
         # 세션 ID가 없으면 새로 생성
@@ -373,7 +373,7 @@ class DiaryEntry(BaseModel):
 
 
 # 샘플 데이터 추가(삭제 예정)
-@app.post("/add_diary")
+@router.post("/add_diary")
 async def add_diary(diary: DiaryEntry):
     try:
         document_content = f"날짜: {diary.date}\n이름: {diary.name}\n감정: {diary.emotion}\n건강: {diary.health}\n영양: {diary.nutrition}\n활동: {', '.join(diary.activities)}\n사회적 활동: {diary.social}\n특별한 일: {diary.special}\n키워드: {', '.join(diary.keywords)}"
@@ -482,12 +482,7 @@ def add_sample_data():
 
 
 # Add sample data on application startup(삭제 예정)
-@app.on_event("startup")
+@router.on_event("startup")
 async def startup_event():
     add_sample_data()
 
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, port=8000)

@@ -51,7 +51,7 @@ async def process_report(input_notice: str):
         # 결과를 json 파일로 저장(or DB 저장(추후))
         if not os.path.exists("results/"):
             os.makedirs("results/")
-        with open(f"results/diary_result", "w", encoding="utf-8") as f:
+        with open(f"results/diary_result.txt", "w", encoding="utf-8") as f:
             json.dump(report, f, ensure_ascii=False, indent=2)
 
         return report
