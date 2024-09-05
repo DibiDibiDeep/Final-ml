@@ -9,6 +9,8 @@ calender_ver1.txt
 calender_ver2.txt
 calender_ver3.txt
 *.json
+*.db
+*.db.lock
 asd.md
 app/api/calendar/images
 app/result/
