@@ -7,6 +7,7 @@
 conda create -n [ENVNAME] python=3.11.0
 conda activate [ENVNAME]
 pip install -r requirements.txt
+conda install -c conda-forge tesseract
 ```
 
 
@@ -15,7 +16,6 @@ pip install -r requirements.txt
 pip install uvicorn[standard]
 ```
 ```bash
-conda install tesseract
 ```
 
 ---

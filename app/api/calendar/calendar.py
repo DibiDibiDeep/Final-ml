@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 import json, os
 from fastapi import HTTPException, APIRouter
 from langchain.globals import set_llm_cache
@@ -6,14 +11,19 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
+
 from app.api.calendar.models import MonthlySchedule, ImageInput
 from app.api.calendar.BetterOCR import betterocr
 from app.api.calendar.utils.date_util import DateProcessor
 
 set_llm_cache(InMemoryCache())
+openai_api_key = os.getenv("OPENAI_API_KEY")
+langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
 
 # OpenAI GPT-4o-mini 모델 사용
-model = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
+model = ChatOpenAI(
+    model_name="gpt-4o-mini", temperature=0, openai_api_key=openai_api_key
+)
 output_parser = JsonOutputParser(pydantic_object=MonthlySchedule)
 
 with open(
