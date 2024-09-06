@@ -1,7 +1,7 @@
 from langchain.agents import tool
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
-from config import vector_store
+from .config import vector_store
 
 
 @tool

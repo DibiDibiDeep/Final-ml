@@ -11,10 +11,14 @@ from langchain.agents import AgentExecutor
 from langchain_community.tools.convert_to_openai import format_tool_to_openai_function
 
 import logging
-from config import vector_store
-from utils.get_data import today_info
-from tools import parent_retriever_assistant, child_retriever_assistant, classify_intent
-from utils.preprocess import add_sample_data
+from .config import vector_store
+from .utils.get_data import today_info
+from .tools import (
+    parent_retriever_assistant,
+    child_retriever_assistant,
+    classify_intent,
+)
+from .utils.preprocess import add_sample_data
 
 router = APIRouter()
 
