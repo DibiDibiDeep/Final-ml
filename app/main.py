@@ -5,7 +5,7 @@ from app.api.babydiary import babydiary
 from app.api.calendar import calendar
 from app.api.daysummary import daysumm
 
-origins = []
+origins = ["*"]
 
 app = FastAPI()
 
