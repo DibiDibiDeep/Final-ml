@@ -2,7 +2,29 @@
 
 ## 사용법
 
-### 환경설정 순서
+- root디렉토리에 `.env`파일 추가
+```bash
+OPENAI_API_KEY=your-api-key
+
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_ENDPOINT=https://api.smith.langchain.com
+LANGCHAIN_API_KEY=your-api-key
+LANGCHAIN_PROJECT=your-project-name
+```
+
+- docker image build
+```bash
+# build image
+docker build -t [IMAGENAME]:[TAG] .
+
+# run container
+docker run --env-file .env --name [CONTAINERNAME] -p 8000:8000 [IMAGENAME]:[TAG] 
+```
+
+- 이후 호스트ip:8000으로 접근해서 스웨거에 값 입력으로 테스트 가능
+
+
+### 로컬에서 실행 시 환경설정
 ```bash
 conda create -n [ENVNAME] python=3.11.0
 conda activate [ENVNAME]
@@ -15,10 +37,7 @@ conda install -c conda-forge tesseract
 ```bash
 pip install uvicorn[standard]
 ```
-```bash
-```
 
----
 ### 실행 예시
 - `python app/main.py` 또는 `uvicorn app.main:app --reload`
 
@@ -109,5 +128,20 @@ curl -X 'POST' \
     "기침"
   ],
   "diary": "오늘은 정말 즐거운 하루였어요! 😊  \n아침에 멋진 우비를 입고 나갔어요. 🌧️  \n오전 간식으로 요플레를 먹었는데, 정말 맛있었어요! 🍦  \n점심에는 김가루를 잘 먹었어요. 맛있었어요! 🍚  \n\n그 후에 자동차 가지고 놀았어요. 🚗  \n친구들과 함께 시소도 탔어요. 너무 재밌었어요! 🎠  \n그리고 도장 찍기도 했어요. 예쁜 도장이 많이 나왔어요! 🌟  \n\n친구들과 골고루 나눠주며 잘 놀았어요. 🤗  \n가끔 기침을 했지만, 엄마가 잘 지켜봐 주셨어요. ❤️  \n오늘 하루가 정말 행복했어요! 🌈"
+}
+```
+
+#### daysummary
+```bash
+# request
+{
+  "text": "내 오늘 하루는 어땠지?",
+  "session_id": "your-id"
+}
+
+# response
+{
+  "response": "답변 - ",
+  "session_id": "your-id"
 }
 ```
