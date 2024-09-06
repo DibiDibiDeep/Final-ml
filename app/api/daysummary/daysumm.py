@@ -54,8 +54,8 @@ prompt = ChatPromptTemplate.from_messages(
             1. If Intent is 'QUESTION_CHILD', use child_retriever_assistant tool filtering by role: child.
             2. If Intent is 'QUESTION_PARENT', use parent_retriever_assistant tool filtering by role: parents.
             3. If Intent is 'DIARY_REQUEST':
-               a. Write a diary entry from the perspective of the parent, addressing themselves in a casual, based on the Today's info and chat history.
-                  When writing the diary, focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities.
+               a. No use tool and write a diary entry from the perspective of the parent, addressing themselves in a casual informal tone, based on the Today's info and chat history.
+               b. When writing the diary, focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities.
             4. If Intent is 'OTHER':
                a. Generate a follow-up question that helps the parent reflect on their emotions and memories of the day.
                b. Formulate a question that offers comfort and encouragement, focusing on the parent's personal experiences and feelings about their day and their child's activities.
