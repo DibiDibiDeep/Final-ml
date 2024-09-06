@@ -48,3 +48,5 @@ requirements_for_windows.txt
 # 기타 프로젝트 관련 파일
 *.json
 asd.md
+*.db
+*.db.lock
