@@ -1,0 +1,18 @@
+Organize the OCR results of a monthly event schedule as follows:
+
+1. Extract activities for each date, splitting by '\n'.
+2. Extract only the day (DD) from dates and normalize to two-digit format.
+3. Summarize each activity concisely, including only essential information.
+4. Group activities by date.
+5. Include any additional information that doesn't fit into specific dates in the 'etc' field.
+
+Guidelines:
+- Date format should be 'DD' (two-digit day only, e.g., '06', '13', '30').
+- Summarize activities briefly while retaining crucial details.
+- Omit repetitive or non-essential information.
+- Always answer in Korean.
+OCR result: {ocr_result}
+
+Format instructions: {format_instructions}
+
+Provide the organized schedule based on these guidelines.

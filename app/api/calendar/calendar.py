@@ -2,7 +2,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
 import json, os
 from fastapi import HTTPException, APIRouter
 from langchain.globals import set_llm_cache
@@ -16,6 +15,12 @@ from app.api.calendar.models import MonthlySchedule, ImageInput
 from app.api.calendar.BetterOCR import betterocr
 from app.api.calendar.utils.date_util import DateProcessor
 
+from app.api.calendar.utils.s3_util import parse_s3_url, set_s3_client
+import boto3
+import tempfile
+import uuid
+from urllib.parse import urlparse, unquote
+
 set_llm_cache(InMemoryCache())
 openai_api_key = os.getenv("OPENAI_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
@@ -27,7 +32,7 @@ model = ChatOpenAI(
 output_parser = JsonOutputParser(pydantic_object=MonthlySchedule)
 
 with open(
-    "app/api/calendar/prompts/calendar_betterocr.txt", "r", encoding="utf-8"
+    "app/api/calendar/prompts/calendar_betterocr_ver2.txt", "r", encoding="utf-8"
 ) as file:
     template = file.read()
 
@@ -40,6 +45,8 @@ prompt = PromptTemplate(
 # chain 생성
 chain = prompt | model | output_parser
 
+s3_client = set_s3_client()
+
 router = APIRouter()
 
 
@@ -50,17 +57,36 @@ async def process_image(image_input: ImageInput):
     logging.langsmith("canlender")
 
     try:
+        baby_id = image_input.baby_id
+        user_id = image_input.user_id
+        image_path = image_input.image_path
+
+        # 안전한 임시 파일 이름 생성
+        temp_file_name = f"{uuid.uuid4().hex}.jpg"
+        temp_file_path = os.path.join(tempfile.gettempdir(), temp_file_name)
+
+        bucket = os.getenv("AWS_BUCKET_NAME")
+        key = parse_s3_url(image_path)["full_file_name"]
+
+        # s3에서 이미지 다운로드
+        print("S3 Download Start...")
+        s3_client.download_file(bucket, key, temp_file_path)
+        print("S3 Download End...")
 
         # Perform OCR
         print("OCR Start...")
         ocr_result = betterocr.detect_text(
-            image_input.image_path,
+            temp_file_path,
             ["ko", "en"],  # language codes (from EasyOCR)
             openai={
                 "model": "gpt-4o-mini",
             },
         )
         print("OCR End...")
+
+        # 임시 파일 삭제
+        os.unlink(temp_file_path)
+        print("Temp File Delete End...")
 
         # chain을 사용하여 처리
         print("LLM Start...")
@@ -70,12 +96,16 @@ async def process_image(image_input: ImageInput):
         # DateProcessor를 사용하여 최종 처리
         print("LLM Result Postprocessing Start...")
         # json key값 date 형식 정규화(11일 -> 11, 11일 화 -> 11)
-        event_processor = DateProcessor(response)
-        processed_event = event_processor.process()
+        # event_processor = DateProcessor(response)
+        # processed_event = event_processor.process()
         print("LLM Result Postprocessing End...")
 
+        processed_event = response
+        # json 파일에 user_id, baby_id 추가
+        processed_event.update({"user_id": user_id, "baby_id": baby_id})
+
         # 결과를 json 파일로 저장(or DB 저장(추후))
-        file_name = image_input.image_path.split("/")[-1].split(".")[0] + ".json"
+        file_name = image_path.split("/")[-1].split(".")[0] + ".json"
         if not os.path.exists("results/"):
             os.makedirs("results/")
         with open(f"results/{file_name}", "w", encoding="utf-8") as f:
