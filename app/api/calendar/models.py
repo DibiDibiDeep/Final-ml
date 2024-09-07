@@ -6,7 +6,7 @@ from typing import List, Optional
 class Activity(BaseModel):
     name: str
     time: Optional[str] = Field(default=None)
-    location: str
+    infomation: str
 
 
 class Event(BaseModel):
