@@ -17,8 +17,20 @@ from .wrappers import (
 )
 
 
+# def wrapper(func, args, queue):
+#     queue.put(func(args))
+class OCRJobFailedError(Exception):
+    pass
+
+
 def wrapper(func, args, queue):
-    queue.put(func(args))
+    try:
+        result = func(args)
+        if result is None or result == "":
+            raise OCRJobFailedError(f"OCR job {func.__name__} failed")
+        queue.put(result)
+    except Exception as e:
+        queue.put(e)
 
 
 # custom error
@@ -84,7 +96,13 @@ def detect_text(
         Thread(target=wrapper, args=(job, options, queue)).start()
         queues.append(queue)
 
-    results = [queue.get() for queue in queues]
+    # results = [queue.get() for queue in queues]
+    results = []
+    for queue in queues:
+        result = queue.get()
+        if isinstance(result, Exception):
+            raise result
+        results.append(result)
 
     result_indexes_prompt = ""  # "[0][1][2]"
     result_prompt = ""  # "[0]: result_0\n[1]: result_1\n[2]: result_2"
@@ -100,9 +118,15 @@ def detect_text(
         f"[context]: {options['context']}" if options["context"] else ""
     )
 
-    prompt = f"""Combine and correct OCR results {result_indexes_prompt}, using \\n for line breaks. Langauge is in {'+'.join(options['lang'])}. Remove unintended noise. Refer to the [context] keywords. Answer in the JSON format {{data:<output:string>}}:
-{result_prompt}
-{optional_context_prompt}"""
+    # prompt = f"""Combine and correct OCR results {result_indexes_prompt}, using \\n for line breaks. Langauge is in {'+'.join(options['lang'])}. Remove unintended noise. Refer to the [context] keywords. Answer in the JSON format {{data:<output:string>}}:
+    # {result_prompt}
+    # {optional_context_prompt}"""
+
+    prompt = f"""First, determine if this document is related to a daycare center schedule:
+    1. If it's not related to daycare schedules (lacks specific daycare schedule information or is clearly about a different topic), output "no" in JSON format {{data:"no"}}.
+    2. If it is related to daycare schedules, combine and correct OCR results {result_indexes_prompt}, using \\n for line breaks. Language is in {'+'.join(options['lang'])}. Remove unintended noise. Refer to the [context] keywords. Answer in the JSON format {{data:<output:string>}}:
+    {result_prompt}
+    {optional_context_prompt}"""
 
     prompt = prompt.strip()
 
@@ -147,6 +171,8 @@ def detect_text(
     print(result)
 
     if "data" in result:
+        if result["data"] == "no":
+            raise ValueError("Not related to daycare schedules")
         return result["data"]
     if isinstance(result, str):
         return result
