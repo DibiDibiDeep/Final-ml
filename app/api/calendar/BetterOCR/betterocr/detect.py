@@ -171,7 +171,7 @@ def detect_text(
     print(result)
 
     if "data" in result:
-        if result["data"] == "no":
+        if result["data"].strip().lower() == "no":
             raise ValueError("Not related to daycare schedules")
         return result["data"]
     if isinstance(result, str):
