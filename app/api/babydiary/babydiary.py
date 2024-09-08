@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
 
+from pydantic import BaseModel
 
 from app.api.babydiary.models import DaycareReport
 from app.api.babydiary.prompts import template, generate_diary
@@ -37,16 +38,27 @@ chain2 = (lambda x: generate_diary(x)) | model | StrOutputParser()
 router = APIRouter()
 
 
+class DiaryInput(BaseModel):
+    user_id: str
+    baby_id: str
+    report: str
+
+
 @router.post("/generate_diary")
-async def process_report(input_notice: str):
+async def process_report(diary_input: DiaryInput):
     from langchain_teddynote import logging
 
     logging.langsmith("babydiary")
 
     try:
-        report = chain.invoke({"report": input_notice})
+        user_id = diary_input.user_id
+        baby_id = diary_input.baby_id
+        notice = diary_input.report
+
+        report = chain.invoke({"report": notice})
         result = chain2.invoke(report)
         report["diary"] = result
+        report.update({"user_id": user_id, "baby_id": baby_id, "role": "child"})
 
         # 결과를 json 파일로 저장(or DB 저장(추후))
         if not os.path.exists("results/"):
