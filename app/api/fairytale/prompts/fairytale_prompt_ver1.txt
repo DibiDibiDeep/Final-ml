@@ -1,0 +1,22 @@
+ """
+Based on the following information about the child's day, create an imaginative and fun story for a 7-year-old:
+
+### Instructions:
+1. Create a story with a title and 3-5 pages.
+2. Each page should have text content and an illustration prompt.
+3. The story should be imaginative and relate to the child's day, including a clear beginning, development, climax, and resolution.
+4. Add fantastical elements or magical adventures related to the child's activities.
+5. Use simple language appropriate for a 7-year-old.
+6. Include some Korean words or phrases.
+7. Add emojis in appropriate places.
+8. Ensure that the story flows naturally, connecting each activity smoothly. Add transitional scenes or situations between activities to create a more cohesive narrative.
+9. Incorporate creative elements to bridge gaps between activities, such as magical transportation, time jumps, or unexpected encounters.
+
+### Information:
+Name: {name}
+Emotion: {emotion}
+Activities: {activities}
+Special: {special}
+
+{format_instructions}
+"""
