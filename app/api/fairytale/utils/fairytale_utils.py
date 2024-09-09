@@ -8,18 +8,16 @@ import os
 # 알림장 요약 데이터 Load, key 선택
 
 
-def load_diary_data(data_path: str):
+def select_keys_from_diary_data(data: dict):
     """
     주어진 경로에서 일기 데이터를 로드하고 선택된 키의 데이터만 반환합니다.
 
     Args:
-        data_path (str): 일기 데이터 파일의 경로
+        data (dict): 알림장 요약 api 반환 결과(name, emotion, activities, special 등 키워드를 포함한 딕셔너리 파일)
 
     Returns:
         dict: 선택된 키에 해당하는 데이터
     """
-    with open(data_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
 
     selected_keys = ["name", "emotion", "activities", "special"]
     selected_data = {}

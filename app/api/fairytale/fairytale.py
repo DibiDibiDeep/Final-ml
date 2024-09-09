@@ -1,9 +1,8 @@
 from app.api.fairytale.utils.fairytale_utils import (
-    load_diary_data,
+    select_keys_from_diary_data,
     load_prompts,
     create_pairy_chain,
     save_result_to_json,
-    view_generated_story,
 )
 from app.api.fairytale.utils.fairytale_image_utils import generate_image
 from openai import OpenAI
@@ -23,7 +22,10 @@ async def generate_fairytale(input_data: FairytaleInput):
     try:
         # 모델 인스턴스 데이터 -> 딕셔너리 데이터로 변환
         data = input_data.model_dump()
+        user_id = data["user_id"]
+        baby_id = data["baby_id"]
 
+        data = select_keys_from_diary_data(data)
         # 프롬프트 로드
         prompts = load_prompts(
             "/Users/insu/pairy/Final-ml/app/api/fairytale/prompts/fairytale_prompt_ver1.txt"
@@ -46,9 +48,16 @@ async def generate_fairytale(input_data: FairytaleInput):
 
         # 이미지 생성
         dall_e = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+        # 표지 이미지 생성 시작
+        print("표지 이미지 생성 시작")
+        title_img_path = generate_image(dall_e, result["title"])
+        result["title_img_path"] = title_img_path
+        print("표지 이미지 생성 완료")
+
         for i in tqdm(
             range(len(result["pages"])),
-            desc="이미지 생성 중",
+            desc="페이지별 이미지 생성 중",
             total=len(result["pages"]),
         ):
             image_url = generate_image(
@@ -56,6 +65,8 @@ async def generate_fairytale(input_data: FairytaleInput):
             )
             result["pages"][i]["image_url"] = image_url
         print("이미지 생성 완료")
+
+        result.update({"user_id": user_id, "baby_id": baby_id})
 
         # JSON 파일로 결과 저장
         save_result_to_json(result, "fairytale_result.json")
