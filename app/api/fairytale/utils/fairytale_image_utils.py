@@ -1,4 +1,5 @@
 from openai import OpenAI
+import pyshorteners
 
 
 def generate_image(client, context):
@@ -14,3 +15,9 @@ def generate_image(client, context):
     # 생성된 이미지의 URL을 저장
     image_url = response.data[0].url
     return image_url
+
+
+def shorten_url(long_url):
+    s = pyshorteners.Shortener()
+    short_url = s.tinyurl.short(long_url)
+    return short_url

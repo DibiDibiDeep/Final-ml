@@ -4,7 +4,7 @@ from app.api.fairytale.utils.fairytale_utils import (
     create_pairy_chain,
     save_result_to_json,
 )
-from app.api.fairytale.utils.fairytale_image_utils import generate_image
+from app.api.fairytale.utils.fairytale_image_utils import generate_image, shorten_url
 from openai import OpenAI
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
@@ -27,9 +27,15 @@ async def generate_fairytale(input_data: FairytaleInput):
 
         data = select_keys_from_diary_data(data)
         # 프롬프트 로드
-        prompts = load_prompts(
-            "Final-ml/app/api/fairytale/prompts/fairytale_prompt_ver1.txt"
-        )
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        prompt_path = os.path.join(current_dir, "prompts", "fairytale_prompt_ver1.txt")
+
+        with open(
+            prompt_path,
+            "r",
+            encoding="utf-8",
+        ) as file:
+            prompts = file.read()
 
         # 동화 생성 체인 생성
         chain = create_pairy_chain(prompts, data)
@@ -52,7 +58,8 @@ async def generate_fairytale(input_data: FairytaleInput):
         # 표지 이미지 생성 시작
         print("표지 이미지 생성 시작")
         title_img_path = generate_image(dall_e, result["title"])
-        result["title_img_path"] = title_img_path
+        title_short_url = shorten_url(title_img_path)
+        result["title_img_path"] = title_short_url
         print("표지 이미지 생성 완료")
 
         for i in tqdm(
@@ -63,7 +70,8 @@ async def generate_fairytale(input_data: FairytaleInput):
             image_url = generate_image(
                 dall_e, result["pages"][i]["illustration_prompt"]
             )
-            result["pages"][i]["image_url"] = image_url
+            short_url = shorten_url(image_url)
+            result["pages"][i]["image_url"] = short_url
         print("이미지 생성 완료")
 
         result.update({"user_id": user_id, "baby_id": baby_id})
