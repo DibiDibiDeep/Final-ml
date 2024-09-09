@@ -22,12 +22,10 @@ class MonthlySchedule(BaseModel):
         description="Additional information that does not fit into the event list",
         default=None,
     )
-    user_id: str
-    baby_id: str
 
 
 # 이미지 업로드 모델(user_id, baby_id, image_path)
 class ImageInput(BaseModel):
-    user_id: str
-    baby_id: str
+    user_id: int
+    baby_id: int
     image_path: str
