@@ -45,8 +45,8 @@ class FairytaleInput(BaseModel):
         keywords (List[str]): 동화와 관련된 키워드 목록
     """
 
-    user_id: str
-    baby_id: str
+    user_id: int
+    baby_id: int
     name: str
     emotion: str
     health: str
