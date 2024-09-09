@@ -28,7 +28,7 @@ async def generate_fairytale(input_data: FairytaleInput):
         data = select_keys_from_diary_data(data)
         # 프롬프트 로드
         prompts = load_prompts(
-            "/Users/insu/pairy/Final-ml/app/api/fairytale/prompts/fairytale_prompt_ver1.txt"
+            "Final-ml/app/api/fairytale/prompts/fairytale_prompt_ver1.txt"
         )
 
         # 동화 생성 체인 생성
