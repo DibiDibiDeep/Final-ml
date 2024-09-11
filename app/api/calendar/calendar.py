@@ -74,7 +74,7 @@ async def process_image(image_input: ImageInput):
             temp_file_name = f"{uuid.uuid4().hex}.jpg"
             temp_file_path = os.path.join(tempfile.gettempdir(), temp_file_name)
 
-            bucket = os.getenv("AWS_BUCKET_NAME")
+            bucket = os.getenv("AWS_S3_BUCKET")
             key = parse_s3_url(image_path)["full_file_name"]
 
             # s3에서 이미지 다운로드
