@@ -1,0 +1,52 @@
+# Python 관련
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook 관련
+.ipynb_checkpoints
+*.ipynb
+
+# 환경 파일
+.env
+
+# 시스템 파일 및 폴더
+.DS_Store
+Thumbs.db
+$RECYCLE.BIN/
+*.stackdump
+
+# Docker 빌드에 불필요한 디렉토리 및 파일
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+
+# 개발 환경 관련
+.vscode/
+.idea/
+.history/
+.spyderproject
+.spyproject
+.ropeproject
+*.vsix
+
+# Docker 빌드 시 포함할 필요 없는 디렉토리
+static/
+results/
+# images/
+app/results/
+app/images/
+app/api/calendar/images
+app/api/calendar/result/
+app/api/calendar/requirements.txt
+app/api/babydiary/requirements.txt
+requirements_for_windows.txt
+
+# 기타 프로젝트 관련 파일
+*.json
+asd.md
+*.db
+*.db.lock
