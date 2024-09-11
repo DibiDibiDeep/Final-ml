@@ -12,9 +12,9 @@ LANGCHAIN_API_KEY=your-api-key
 LANGCHAIN_PROJECT=your-project-name
 
 AWS_ACCESS_KEY_ID=your-access-key-id
-AWS_SECRET_ACCESS_KEY=your-secret-access-key
+AWS_SECRET_KEY=your-secret-access-key
 AWS_REGION=your-region
-AWS_BUCKET_NAME=your-bucket-name
+AWS_S3_BUCKET=your-bucket-name
 ```
 
 - docker image build
