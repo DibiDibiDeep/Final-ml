@@ -39,8 +39,8 @@ router = APIRouter()
 
 
 class DiaryInput(BaseModel):
-    user_id: str
-    baby_id: str
+    user_id: int
+    baby_id: int
     report: str
 
 
