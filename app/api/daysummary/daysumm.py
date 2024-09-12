@@ -27,8 +27,10 @@ user_sessions: Dict[str, List[str]] = {}
 
 
 class Query(BaseModel):
-    text: str
+    baby_id: int
+    user_id: int
     session_id: str = None
+    text: str
 
 
 class DiaryEntry(BaseModel):
@@ -141,7 +143,12 @@ async def process_user_query(query: Query):
             f"Updated chat history for session {query.session_id}: {chat_history}"
         )
 
-        return {"response": result["output"], "session_id": query.session_id}
+        return {
+            "baby_id": query.baby_id,
+            "user_id": query.user_id,
+            "session_id": query.session_id,
+            "response": result["output"],
+        }
 
     except Exception as e:
         logger.error(f"Error processing query: {str(e)}")
