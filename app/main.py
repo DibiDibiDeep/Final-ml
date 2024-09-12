@@ -6,7 +6,7 @@ from app.api.calendar import calendar
 from app.api.daysummary import daysumm
 from app.api.fairytale import fairytale
 
-origins = ["*"]
+origins = ["http://localhost:8080"]
 
 app = FastAPI()
 
