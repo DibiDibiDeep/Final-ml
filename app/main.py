@@ -6,7 +6,9 @@ from app.api.calendar import calendar
 from app.api.daysummary import daysumm
 from app.api.fairytale import fairytale
 
-origins = ["http://localhost:8080"]
+import os
+
+origins = [os.getenv("NEXT_PUBLIC_BACKEND_API_URL"), "http://localhost:8080"]
 
 app = FastAPI()
 
