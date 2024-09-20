@@ -8,7 +8,10 @@ load_dotenv()
 # Embedding model configuration
 embeddings_model = HuggingFaceEmbeddings(
     model_name="bespin-global/klue-sroberta-base-continue-learning-by-mnr",
-    model_kwargs={"device": "cpu"},
+    model_kwargs={
+        "device": "cpu",
+        "tokenizer_kwargs": {"clean_up_tokenization_spaces": True},
+    },
     encode_kwargs={"normalize_embeddings": True},
 )
 

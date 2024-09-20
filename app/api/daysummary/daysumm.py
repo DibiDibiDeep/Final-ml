@@ -2,14 +2,15 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, List
 from uuid import uuid4
+import os
 
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents.format_scratchpad import format_to_openai_function_messages
 from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 from langchain.agents import AgentExecutor
-from langchain_community.tools.convert_to_openai import format_tool_to_openai_function
 
+from langchain_core.utils.function_calling import convert_to_openai_function
 import logging
 from .config import vector_store
 from .utils.get_data import today_info
@@ -77,8 +78,6 @@ prompt = ChatPromptTemplate.from_messages(
 llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 tools = [parent_retriever_assistant, child_retriever_assistant]
 
-llm_with_tools = llm.bind(functions=[format_tool_to_openai_function(t) for t in tools])
-
 # Agent setup
 agent = (
     {
@@ -91,7 +90,7 @@ agent = (
         "chat_history": lambda x: x["chat_history"],
     }
     | prompt
-    | llm.bind(functions=[format_tool_to_openai_function(t) for t in tools])
+    | llm.bind(functions=[convert_to_openai_function(t) for t in tools])
     | OpenAIFunctionsAgentOutputParser()
 )
 
