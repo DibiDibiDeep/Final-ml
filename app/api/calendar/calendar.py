@@ -65,6 +65,13 @@ async def process_image(image_input: ImageInput):
         baby_id = image_input.baby_id
         user_id = image_input.user_id
         image_path = image_input.image_path
+        print(
+            f"""
+              baby_id: {baby_id}
+              user_id: {user_id}
+              image_path: {image_path}
+              """
+        )
 
         # S3 URL 감지
         parsed_url = urlparse(image_path)
@@ -85,6 +92,7 @@ async def process_image(image_input: ImageInput):
         else:
             ocr_target = image_path
 
+        print(f"!!!Downloaded OCR target!!! : ", ocr_target)
         # Perform OCR
         print("OCR Start...")
         ocr_result = betterocr.detect_text(
