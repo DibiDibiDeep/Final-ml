@@ -17,17 +17,38 @@ class StoryPage(BaseModel):
     )
 
 
+class Character(BaseModel):
+    """
+    동화 속 캐릭터를 나타내는 클래스입니다.
+
+    Attributes:
+        name (str): 캐릭터의 이름
+        description (str): 캐릭터에 대한 상세 설명
+    """
+
+    name: str = Field(..., description="The name of the character")
+    description: str = Field(..., description="Detailed description of the character")
+
+
 class StoryResponse(BaseModel):
     """
     완성된 동화 이야기의 응답을 나타내는 클래스입니다.
 
     Attributes:
         title (str): 동화의 제목
+        characters (List[Character]): 동화에 등장하는 캐릭터 목록
         pages (List[StoryPage]): 동화의 페이지 목록
+        book_cover_description (str): 책 표지에 대한 상세 설명
     """
 
     title: str = Field(..., description="The title of the story")
+    characters: List[Character] = Field(
+        ..., description="List of characters in the story"
+    )
     pages: List[StoryPage] = Field(..., description="List of story pages")
+    book_cover_description: str = Field(
+        ..., description="Detailed description of the book cover"
+    )
 
 
 class FairytaleInput(BaseModel):
@@ -48,6 +69,8 @@ class FairytaleInput(BaseModel):
     user_id: int
     baby_id: int
     name: str
+    age: int
+    gender: str
     emotion: str
     health: str
     nutrition: str
