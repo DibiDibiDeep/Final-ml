@@ -7,36 +7,43 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from .config import collection
-from pymilvus.model.hybrid import BGEM3EmbeddingFunction
+
+# from pymilvus.model.hybrid import BGEM3EmbeddingFunction
 from pymilvus import (
     AnnSearchRequest,
     RRFRanker,
 )
 from openai import OpenAI
-embedding_client = OpenAI(api_key= os.getenv("OPENAI_API_KEY"))
+
+embedding_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 def get_embedding(client, text, model="text-embedding-3-small"):
-   text = text.replace("\n", " ")
-   return client.embeddings.create(input = [text], model=model).data[0].embedding
+    text = text.replace("\n", " ")
+    return client.embeddings.create(input=[text], model=model).data[0].embedding
 
 
 @tool
 def classify_intent(query: str) -> str:
     """
     This function classifies the intent of a given query.
-    
+
     Parameters:
     query (str): The query input by the user
-    
+
     Returns:
-    str: 'QUESTION' or 'DIARY_REQUEST' or 'OTHER'
+    str: 'QUESTION', 'DIARY_REQUEST', 'FOLLOW_UP', 'ANSWER'
     """
-    llm = ChatOpenAI(model_name="gpt-4o-mini", 
-                     openai_api_key=os.getenv("OPENAI_API_KEY"),
-                     temperature=0)
+    llm = ChatOpenAI(
+        model_name="gpt-4o-mini",
+        openai_api_key=os.getenv("OPENAI_API_KEY"),
+        temperature=0,
+    )
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -44,8 +51,8 @@ def classify_intent(query: str) -> str:
                 """
                 Classify the user's query into one of these categories:
                 'QUESTION': for inquiries about specific events, activities, or details of the parent's or child's day. This includes asking about what happened, who was involved, or requesting factual information about their experiences.
-                'DIARY_REQUEST': for explicit requests to write or compose a diary entry, journal entry, or reflective piece about the day's events. This category is used when the user asks for a written account or summary of the day, rather than asking for specific information.
-                'OTHER': for expressions of emotion, mood, or any input that doesn't fit into the above categories.
+                'DIARY_REQUEST': This category should only be used when the user explicitly requests to write a diary entry.
+                'ANSWER': for cases that are neither QUESTION nor DIARY_REQUEST.
                 Provide only the category name as the response.
                 """,
             ),
@@ -64,12 +71,13 @@ def retreiver_about_qeustion(query: str, expr: str):
     Retrieves information about the parent's or child's day and activities and generates a response.
     Use this tool when you need to find specific information about the parent's or child's past events.
     """
-    today_date = datetime.now().strftime('%Y-%m-%d')
+    today_date = datetime.now().strftime("%Y-%m-%d")
+
     llm = ChatOpenAI(
         openai_api_key=os.getenv("OPENAI_API_KEY"),
         model="gpt-4o-mini",
         temperature=0.0,
-        )
+    )
     """
         - emotion (VARCHAR)
         - health (VARCHAR)
@@ -113,18 +121,22 @@ def retreiver_about_qeustion(query: str, expr: str):
 
     res = collection.search(
         [query_embeddings],
-        expr = expr,
-        anns_field='embedding', 
-        param={"metric_type": "COSINE", "params": {"nprobe": 10}},  # COSINE 메트릭 타입 사용
-        rerank=RRFRanker(), 
-        limit=1, 
-        output_fields=['text']
+        expr=expr,
+        anns_field="embedding",
+        param={
+            "metric_type": "COSINE",
+            "params": {"nprobe": 10},
+        },  # COSINE 메트릭 타입 사용
+        rerank=RRFRanker(),
+        limit=1,
+        output_fields=["date", "text"],
     )
     logging.info(f"Search result: {res}")
-    try:
-        result = res[0][0].get('text')
-        return result
-    except:
-        result = "I don't know"
-        logging.info(f"Search result: {result}")
-        return result
+    # try:
+    #     result = res[0][0].get("text")
+    #     return result
+    # except:
+    #     result = "I don't know"
+    #     logging.info(f"Search result: {result}")
+    # return result
+    return res
