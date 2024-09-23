@@ -1,23 +1,16 @@
-from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_milvus import Milvus
-
-# Load environment variables
-load_dotenv()
-
-# Embedding model configuration
-embeddings_model = HuggingFaceEmbeddings(
-    model_name="bespin-global/klue-sroberta-base-continue-learning-by-mnr",
-    model_kwargs={"device": "cpu"},
-    encode_kwargs={"normalize_embeddings": True},
+from pymilvus import (
+    connections,
+    Collection
 )
+from .utils import insert_db
 
-# Milvus vector store configuration (for local development)
-URI = "./milvus_example.db"
+connections.connect("default", host="standalone", port="19530")
 
-vector_store = Milvus(
-    embedding_function=embeddings_model,
-    connection_args={"uri": URI},
-)
 
-retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 1})
+# Milvus 컬렉션 로드
+try:
+    collection = Collection("child")
+except Exception as e:
+    insert_db()
+    collection = Collection("child")
+collection.load()
