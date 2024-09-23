@@ -51,7 +51,7 @@ prompt = ChatPromptTemplate.from_messages(
                b. based on the Today's info and chat history(question and answer).chat history may contain questions about past events.
                c. When writing the diary, focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities.
             3. If Intent is 'ANSWER':
-               a. Provide information or answers to previously asked questions. And another question that can help write a diary entry summarizing the day.
+               a. No use tool and answer to the question. And another question that can help write a diary entry summarizing the day.
              Use each tool only once per request. And always in Korean.
             """,
         ),

@@ -68,8 +68,9 @@ def classify_intent(query: str) -> str:
 @tool
 def retreiver_about_qeustion(query: str, expr: str):
     """
+    Use this tool when you need to find specific information about the parent's or child's events.
     Retrieves information about the parent's or child's day and activities and generates a response.
-    Use this tool when you need to find specific information about the parent's or child's past events.
+
     """
     today_date = datetime.now().strftime("%Y-%m-%d")
 
