@@ -20,7 +20,8 @@ COPY requirements.txt .
 
 # Install Python packages
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt && 
+    pip install --no-cache-dir -r requirements.txt
+
 
 # Clone and install EasyOCR locally
 COPY ./app/api/calendar/EasyOCR /app/calendar/EasyOCR

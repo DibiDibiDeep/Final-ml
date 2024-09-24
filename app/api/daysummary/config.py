@@ -4,13 +4,19 @@ from pymilvus import (
     utility,
 )
 from .utils import insert_db
+import os
 
-connections.connect("default", host="standalone", port="19530")
 
+# Get the MILVUS_HOST from environment variables
+MILVUS_HOST = os.getenv("MILVUS_HOST")
+MILVUS_PORT = os.getenv("MILVUS_PORT")
+collection_name = os.getenv("COLLECTION_NAME")
+
+connections.connect("default", host=MILVUS_HOST, port=str(MILVUS_PORT))
 # Milvus 컬렉션 로드
 
-if not utility.has_collection("child"):
+if not utility.has_collection(collection_name):
     insert_db()
 else:
-    collection = Collection("child")
+    collection = Collection(collection_name)
 collection.load()
