@@ -12,13 +12,13 @@ from langchain.agents import AgentExecutor
 from langchain_community.tools.convert_to_openai import format_tool_to_openai_function
 
 import logging
-
-# from .config import collection
-from .utils.get_data import today_info
+from .utils.get_data import get_today_info
 from .tools import (
     retreiver_about_qeustion,
-    classify_intent,
 )
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
+llm_model = os.getenv("LLM_MODEL")
 
 # User session management
 user_sessions: Dict[str, List[str]] = {}
@@ -30,32 +30,52 @@ class Query(BaseModel):
     session_id: str = None
     text: str
 
-
 # Agent prompt
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            """
+           """
             You are an assistant designed to help with questions about a person's day and write diary entries.
-            Your answers should always include a question that can help write a diary entry summarizing the day, except when the intent is 'DIARY_REQUEST'.
-            Based on the provided intent classification, follow these steps:
-            1. If Intent is 'QUESTION', use retreiver_about_qeustion tool and answer the question.
-               - Question is connected to before question.
-               - If the date cannot be determined from the user's query, request the user to provide the information about the Year, Month.
-               - When the question is about the child, encourage the parent to ask their child directly about their day, activities, or feelings.
-               - Suggest follow-up questions that the parent can ask their child to gain more insight into the child's experiences.
-               - Provide guidance on how to phrase questions in a way that encourages open-ended responses from the child.
+            You have access to the following user information:
+            - User ID: {user_id}
+            - Baby ID: {baby_id}
+
+            Your task is to determine the user's intent and respond accordingly. You can use the classify_intent_tool to help you, but you should also use your own judgment based on the context of the conversation.
+
+            Possible intents are:
+            1. QUESTION: For inquiries about specific events, activities, or details of the parent's or child's day.
+            2. DIARY_REQUEST: When the user explicitly requests to write a diary entry.
+            3. ANSWER: For cases that are neither QUESTION nor DIARY_REQUEST.
+
+            Based on the intent you determine, follow these steps:
+
+            1. If Intent is 'QUESTION':
+               - Use the retreiver_about_qeustion tool to answer the question. Always include the user_id and baby_id when using this tool.
+               - If the retreiver_about_qeustion tool returns "No results found", inform the user that there is no information available for their query and explain that the data for that day might not be stored in the database.
+               - Questions are connected to previous questions.
+               - If the date cannot be determined from the user's query, request information about the year and month.
+               - For questions about the child, encourage parents to ask their child directly and suggest follow-up questions.
+               - Provide guidance on how to phrase questions to encourage open-ended responses from the child.
+               
             2. If Intent is 'DIARY_REQUEST':
-               a. No use tool and write a diary entry from the perspective of the parent, addressing themselves in a casual informal tone.
-               b. based on the Today's info and chat history(question and answer).chat history may contain questions about past events.
-               c. When writing the diary, focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities.
+               - Do not use any tools.
+               - Write a diary entry from the parent's perspective in a casual, informal tone.
+               - Base the diary on Today's info and chat history.
+               - Focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities.
+
             3. If Intent is 'ANSWER':
-               a. No use tool and answer to the question. And another question that can help write a diary entry summarizing the day.
-             Use each tool only once per request. And always in Korean.
+               - Do not use any tools.
+               - Provide a direct answer to the question based on the chat history and Today's info.
+
+            General guidelines:
+            - Include a question that can help write a diary entry summarizing the day in all responses except for 'DIARY_REQUEST'.
+            - Use tools only for 'QUESTION' intent, and only once per request.
+            - Write a diary entry only when the user explicitly requests it ('DIARY_REQUEST' intent).
+            - Always respond in Korean.
             """,
         ),
-        ("human", "Intent: {intent}\nToday's info: {today_info}\nQuery: {input}"),
+        ("human", "user_id: {user_id}, baby_id: {baby_id}\nToday's info: {today_info}\nQuery: {input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
         MessagesPlaceholder(variable_name="chat_history"),
     ]
@@ -63,19 +83,18 @@ prompt = ChatPromptTemplate.from_messages(
 
 # LLM and tools setup
 llm = ChatOpenAI(
-    model_name="gpt-4o-mini", openai_api_key=os.getenv("OPENAI_API_KEY"), temperature=0
+    model_name=llm_model, openai_api_key=openai_api_key, temperature=0
 )
-# tools = [parent_retriever_assistant, child_retriever_assistant]
-tools = [retreiver_about_qeustion]
 
-llm_with_tools = llm.bind(functions=[format_tool_to_openai_function(t) for t in tools])
+tools = [retreiver_about_qeustion]
 
 # Agent setup
 agent = (
     {
         "input": lambda x: x["input"],
-        "intent": lambda x: x["intent"],
         "today_info": lambda x: x["today_info"]["today_text"],
+        "user_id": lambda x: x["user_id"],
+        "baby_id": lambda x: x["baby_id"],
         "agent_scratchpad": lambda x: format_to_openai_function_messages(
             x["intermediate_steps"]
         ),
@@ -91,9 +110,7 @@ agent_executor = AgentExecutor(
     agent=agent,
     tools=tools,
     verbose=True,
-    max_iterations=4,
-    return_intermediate_steps=True,
-    early_stopping_method="force",
+    max_iterations=2,
 )
 
 # Logging setup
@@ -115,13 +132,14 @@ async def process_user_query(query: Query):
         logger.info(
             f"Current chat history for session {query.session_id}: {chat_history}"
         )
-        intent_result = classify_intent.invoke(query.text)
+        today_info = get_today_info(query.user_id,query.baby_id)
         result = agent_executor.invoke(
             {
                 "input": query.text,
-                "intent": intent_result,
                 "chat_history": chat_history,
                 "today_info": today_info,
+                "user_id": query.user_id,
+                "baby_id": query.baby_id,
             }
         )
 
@@ -135,7 +153,6 @@ async def process_user_query(query: Query):
         logger.info(
             f"Updated chat history for session {query.session_id}: {chat_history}"
         )
-
         return {
             "baby_id": query.baby_id,
             "user_id": query.user_id,
