@@ -9,8 +9,8 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents.format_scratchpad import format_to_openai_function_messages
 from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 from langchain.agents import AgentExecutor
-from langchain_community.tools.convert_to_openai import format_tool_to_openai_function
 
+from langchain_core.utils.function_calling import convert_to_openai_function
 import logging
 from .utils.get_data import get_today_info
 from .tools import (
@@ -101,7 +101,7 @@ agent = (
         "chat_history": lambda x: x["chat_history"],
     }
     | prompt
-    | llm.bind(functions=[format_tool_to_openai_function(t) for t in tools])
+    | llm.bind(functions=[convert_to_openai_function(t) for t in tools])
     | OpenAIFunctionsAgentOutputParser()
 )
 

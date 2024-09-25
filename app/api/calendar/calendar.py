@@ -19,7 +19,6 @@ import uuid
 from urllib.parse import urlparse, unquote
 import json, os
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 set_llm_cache(InMemoryCache())
 openai_api_key = os.getenv("OPENAI_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
@@ -31,7 +30,7 @@ model = ChatOpenAI(
 output_parser = JsonOutputParser(pydantic_object=MonthlySchedule)
 
 with open(
-    "app/api/calendar/prompts/calendar_betterocr_ver2.txt", "r", encoding="utf-8"
+    "app/api/calendar/prompts/calendar_betterocr_ver3.txt", "r", encoding="utf-8"
 ) as file:
     template = file.read()
 
