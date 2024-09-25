@@ -8,7 +8,7 @@ from app.api.fairytale import fairytale
 
 import os
 
-origins = [os.getenv("NEXT_PUBLIC_BACKEND_API_URL"), "http://localhost:8080"]
+origins = [os.getenv("DOCKER_BRIDGE_BACK")]
 
 app = FastAPI()
 
