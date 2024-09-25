@@ -8,13 +8,13 @@ from app.api.fairytale import fairytale
 
 import os
 
-origins = [os.getenv("DOCKER_BRIDGE_BACK")]
+# origins = [os.getenv("DOCKER_BRIDGE_BACK")]
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
