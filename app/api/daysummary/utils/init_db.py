@@ -8,6 +8,7 @@ from pymilvus import (
 )
 import os
 from openai import OpenAI
+from fastapi import APIRouter, HTTPException
 
 # 환경변수 설정
 openai_key = os.getenv("OPENAI_API_KEY")
@@ -17,6 +18,7 @@ embedding_model = os.getenv("EMBEDDING_MODEL")
 embedding_dimension = os.getenv("EMBEDDING_DIMENSION")
 collection_name = os.getenv("COLLECTION_NAME")
 
+router = APIRouter()
 # Milvus 연결 및 컬렉션 생성
 connections.connect("default", host=milvus_host, port=str(milvus_port))
 

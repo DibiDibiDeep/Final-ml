@@ -3,7 +3,7 @@ from pymilvus import (
     connections,
     utility,
 )
-from .utils import insert_db
+from .utils import init_db
 import os
 
 
@@ -16,7 +16,7 @@ connections.connect("default", host=MILVUS_HOST, port=str(MILVUS_PORT))
 # Milvus 컬렉션 로드
 
 if not utility.has_collection(collection_name):
-    insert_db()
+    init_db()
 else:
     collection = Collection(collection_name)
 collection.load()
