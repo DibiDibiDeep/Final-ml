@@ -5,10 +5,9 @@ from app.api.babydiary import babydiary
 from app.api.calendar import calendar
 from app.api.daysummary import daysumm
 from app.api.fairytale import fairytale
-
+from app.api.embedding import embedd
 import os
 
-# origins = [os.getenv("DOCKER_BRIDGE_BACK")]
 
 app = FastAPI()
 
@@ -24,7 +23,7 @@ app.include_router(babydiary.router)
 app.include_router(calendar.router)
 app.include_router(daysumm.router)
 app.include_router(fairytale.router)
-
+app.include_router(embedd.router)
 if __name__ == "__main__":
     import uvicorn
 
