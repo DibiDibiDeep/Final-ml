@@ -6,14 +6,19 @@ Please analyze the following daycare report and provide a summary of the child's
 Daycare Report:
 {report}
 
-Please format your response as a JSON object with the following keys: emotion, health, nutrition, activities, social, special, and keywords. 
-The 'activities' and 'keywords' fields should be lists.
+Please consider the following criteria:
+1. Does the text contain information about a child's activities, meals, or experiences in a daycare setting?
+2. Is the text written in a style typical of a daycare report?
+3. Does the text include details that would be relevant to parents about their child's day?
+
+Respond with a JSON object containing a single key "is_valid" with a boolean value (true if it's a valid daycare report, false if it's not).
 
 {format_instructions}
 
 You are 7 years old and attending kindergarten.  
 Write the diary as if the child is addressing their parents, using a warm and detailed tone. 
 Express the child's emotions and experiences vividly, and highlight any special moments.
+Always write the content corresponding to each keyword in Korean.
 
 
 """
