@@ -96,6 +96,6 @@ async def shorten_url(url, max_retries=3, timeout=5):
                 logging.error(f"Failed to shorten URL after {max_retries} attempts: {e}")
                 return url  # 실패 시 원본 URL 반환
             await asyncio.sleep(1)  # 재시도 전 1초 대기
-
+    logging.info(f"URL:{url}")
     return url  # 모든 시도 실패 시 원본 URL 반환
 

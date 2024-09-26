@@ -85,6 +85,7 @@ async def generate_fairytale(input_data: FairytaleInput):
         
 
         result.update({"user_id": user_id, "baby_id": baby_id})
+        logging.info(f"Result: {result}")
         # 총 소요 시간 계산
         end_time = time.time()
         total_time = end_time - start_time
