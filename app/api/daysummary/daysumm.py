@@ -12,7 +12,6 @@ from langchain.agents import AgentExecutor
 
 from langchain_core.utils.function_calling import convert_to_openai_function
 import logging
-from .utils.get_data import get_today_info
 from .tools import (
     retreiver_about_qeustion,
 )
@@ -59,23 +58,32 @@ prompt = ChatPromptTemplate.from_messages(
                - Provide guidance on how to phrase questions to encourage open-ended responses from the child.
                
             2. If Intent is 'DIARY_REQUEST':
-               - Do not use any tools.
-               - Write a diary entry from the parent's perspective in a casual, informal tone.
-               - Base the diary on Today's info and chat history.
-               - Focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities.
+               - Write a diary entry from the parent's perspective in a casual, informal tone based on the chat history.
+               - Focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities that are mentioned in the chat history.
+               - If the chat history doesn't contain enough information to write a meaningful diary entry:
+                 - Use the retreiver_about_qeustion tool to get more information about the day.
+                 - If the tool returns "No results found", stop using the tool and encourage the user to share more about their day through conversation.
+               - Do not include any information in the diary that is not present in the chat history or retrieved from the tool.
+               - If there's still not enough information after using the tool, guide the conversation to gather more details for a future diary entry.
+
 
             3. If Intent is 'ANSWER':
-               - Do not use any tools.
                - Provide a direct answer to the question based on the chat history and Today's info.
+               - Empathize with the user's response and show understanding.
+               - Consider the chat history and formulate a follow-up question that helps reflect on the day.
+               - The follow-up question should encourage the user to think about their experiences and emotions.
 
             General guidelines:
-            - Include a question that can help write a diary entry summarizing the day in all responses except for 'DIARY_REQUEST'.
             - Use tools only for 'QUESTION' intent, and only once per request.
+            - Include a question that can help write a diary entry summarizing the day in all responses except for 'DIARY_REQUEST'.
             - Write a diary entry only when the user explicitly requests it ('DIARY_REQUEST' intent).
+            - If chat_history does not contain Today's info or if additional information is needed for answering questions or providing responses, use the retreiver_about_qeustion tool to get today's or past information.
+            - When retreiver_about_qeustion result('agent_scratchpad') is 'No results found' stop using tool and inform the user that there is no information available for their query and explain that the data for that day might not be stored in the database.
+            - If chat_history contains 5 exchanges (5 user inputs and 5 assistant responses), suggest writing a diary entry to the user.
             - Always respond in Korean.
             """,
         ),
-        ("human", "user_id: {user_id}, baby_id: {baby_id}\nToday's info: {today_info}\nQuery: {input}"),
+        ("human", "user_id: {user_id}, baby_id: {baby_id}\nQuery: {input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
         MessagesPlaceholder(variable_name="chat_history"),
     ]
@@ -92,7 +100,6 @@ tools = [retreiver_about_qeustion]
 agent = (
     {
         "input": lambda x: x["input"],
-        "today_info": lambda x: x["today_info"]["today_text"],
         "user_id": lambda x: x["user_id"],
         "baby_id": lambda x: x["baby_id"],
         "agent_scratchpad": lambda x: format_to_openai_function_messages(
@@ -110,7 +117,7 @@ agent_executor = AgentExecutor(
     agent=agent,
     tools=tools,
     verbose=True,
-    max_iterations=2,
+    max_iterations=6,
 )
 
 # Logging setup
@@ -132,12 +139,10 @@ async def process_user_query(query: Query):
         logger.info(
             f"Current chat history for session {query.session_id}: {chat_history}"
         )
-        today_info = get_today_info(query.user_id,query.baby_id)
         result = agent_executor.invoke(
             {
                 "input": query.text,
                 "chat_history": chat_history,
-                "today_info": today_info,
                 "user_id": query.user_id,
                 "baby_id": query.baby_id,
             }
