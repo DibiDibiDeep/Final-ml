@@ -22,6 +22,9 @@ images/
 app/results/
 app/images/
 requirements_for_windows.txt
+audios/
+app/api/audiomemo/audiomemo_etri.py
+
 
 # Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudiocode,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=windows,linux,macos,visualstudiocode,python
