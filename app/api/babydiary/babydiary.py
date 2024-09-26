@@ -56,6 +56,10 @@ async def process_report(diary_input: DiaryInput):
         notice = diary_input.report
 
         report = chain.invoke({"report": notice})
+        if report["is_valid"] == False:
+            raise HTTPException(status_code=400, detail="Invalid daycare report content")
+        
+        report.pop('is_valid', None)
         result = chain2.invoke(report)
         report["diary"] = result
         report.update({"user_id": user_id, "baby_id": baby_id, "role": "child"})
