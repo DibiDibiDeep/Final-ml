@@ -58,9 +58,14 @@ prompt = ChatPromptTemplate.from_messages(
                - Provide guidance on how to phrase questions to encourage open-ended responses from the child.
                
             2. If Intent is 'DIARY_REQUEST':
-               - Write a diary entry from the parent's perspective in a casual, informal tone.
-               - Base the diary on Today's info and chat history.
-               - Focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities.
+               - Write a diary entry from the parent's perspective in a casual, informal tone based on the chat history.
+               - Focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities that are mentioned in the chat history.
+               - If the chat history doesn't contain enough information to write a meaningful diary entry:
+                 - Use the retreiver_about_qeustion tool to get more information about the day.
+                 - If the tool returns "No results found", stop using the tool and encourage the user to share more about their day through conversation.
+               - Do not include any information in the diary that is not present in the chat history or retrieved from the tool.
+               - If there's still not enough information after using the tool, guide the conversation to gather more details for a future diary entry.
+
 
             3. If Intent is 'ANSWER':
                - Provide a direct answer to the question based on the chat history and Today's info.
