@@ -1,6 +1,7 @@
 import os
 import logging
 from datetime import datetime
+import requests
 
 from langchain.agents import tool
 from langchain_openai import ChatOpenAI
@@ -96,3 +97,31 @@ def retreiver_about_qeustion(user_id: int, baby_id: int, query: str):
         return "No results found"
     else:
         return res
+    
+
+@tool
+def save_diary(user_id: int, baby_id: int, content: str) -> bool:
+    """Use this when you want to POST to a Backend API.
+    Be careful to always use double quotes for strings in the json string
+    The output will be the text response of the POST request.
+    If the response is successful, the function will return true.
+    After a successful response, stop using this tool and inform the user about the successful save.
+    """
+    backend_url = os.getenv("BACKEND_API_URL")
+    headers = {
+        "Content-Type": "application/json",
+    }
+    data = {
+        "userId": user_id,
+        "babyId": baby_id,
+        "content": content,
+        "date": datetime.now().strftime("%Y-%m-%d")
+    }
+    logging.info(f"Data to be saved: {data} ,Data type: {type(data)}")
+    try:
+        response = requests.post(backend_url + "/api/today-sum", json=data, headers=headers)
+        # logging.info(f"Response from backend: {data}")
+        return True
+    except requests.exceptions.RequestException as e:
+        # logging.error(f"Error saving diary: {str(e)}")
+        return False
