@@ -3,17 +3,17 @@ from pydantic import BaseModel
 from typing import Dict, List
 from uuid import uuid4
 import os
+import logging
 
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents.format_scratchpad import format_to_openai_function_messages
 from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 from langchain.agents import AgentExecutor
-
 from langchain_core.utils.function_calling import convert_to_openai_function
-import logging
+
 from .tools import (
-    retreiver_about_qeustion,
+    retreiver_about_qeustion
 )
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -29,59 +29,20 @@ class Query(BaseModel):
     session_id: str = None
     text: str
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+prompt_path = os.path.join(current_dir, "prompts", "daysummary_prompt_ver2.txt")
+
+with open(
+    prompt_path, "r", encoding="utf-8"
+) as file:
+    template = file.read()
+
 # Agent prompt
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-           """
-            You are an assistant designed to help with questions about a person's day and write diary entries.
-            You have access to the following user information:
-            - User ID: {user_id}
-            - Baby ID: {baby_id}
-
-            Your task is to determine the user's intent and respond accordingly. You can use the classify_intent_tool to help you, but you should also use your own judgment based on the context of the conversation.
-
-            Possible intents are:
-            1. QUESTION: For inquiries about specific events, activities, or details of the parent's or child's day.
-            2. DIARY_REQUEST: When the user explicitly requests to write a diary entry.
-            3. ANSWER: For cases that are neither QUESTION nor DIARY_REQUEST.
-
-            Based on the intent you determine, follow these steps:
-
-            1. If Intent is 'QUESTION':
-               - Use the retreiver_about_qeustion tool to answer the question. Always include the user_id and baby_id when using this tool.
-               - If the retreiver_about_qeustion tool returns "No results found", inform the user that there is no information available for their query and explain that the data for that day might not be stored in the database.
-               - Questions are connected to previous questions.
-               - If the date cannot be determined from the user's query, request information about the year and month.
-               - For questions about the child, encourage parents to ask their child directly and suggest follow-up questions.
-               - Provide guidance on how to phrase questions to encourage open-ended responses from the child.
-               
-            2. If Intent is 'DIARY_REQUEST':
-               - Write a diary entry from the parent's perspective in a casual, informal tone based on the chat history.
-               - Focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities that are mentioned in the chat history.
-               - If the chat history doesn't contain enough information to write a meaningful diary entry:
-                 - Use the retreiver_about_qeustion tool to get more information about the day.
-                 - If the tool returns "No results found", stop using the tool and encourage the user to share more about their day through conversation.
-               - Do not include any information in the diary that is not present in the chat history or retrieved from the tool.
-               - If there's still not enough information after using the tool, guide the conversation to gather more details for a future diary entry.
-
-
-            3. If Intent is 'ANSWER':
-               - Provide a direct answer to the question based on the chat history and Today's info.
-               - Empathize with the user's response and show understanding.
-               - Consider the chat history and formulate a follow-up question that helps reflect on the day.
-               - The follow-up question should encourage the user to think about their experiences and emotions.
-
-            General guidelines:
-            - Use tools only for 'QUESTION' intent, and only once per request.
-            - Include a question that can help write a diary entry summarizing the day in all responses except for 'DIARY_REQUEST'.
-            - Write a diary entry only when the user explicitly requests it ('DIARY_REQUEST' intent).
-            - If chat_history does not contain Today's info or if additional information is needed for answering questions or providing responses, use the retreiver_about_qeustion tool to get today's or past information.
-            - When retreiver_about_qeustion result('agent_scratchpad') is 'No results found' stop using tool and inform the user that there is no information available for their query and explain that the data for that day might not be stored in the database.
-            - If chat_history contains 5 exchanges (5 user inputs and 5 assistant responses), suggest writing a diary entry to the user.
-            - Always respond in Korean.
-            """,
+            template,
         ),
         ("human", "user_id: {user_id}, baby_id: {baby_id}\nQuery: {input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad"),
@@ -94,7 +55,10 @@ llm = ChatOpenAI(
     model_name=llm_model, openai_api_key=openai_api_key, temperature=0
 )
 
-tools = [retreiver_about_qeustion]
+
+tools = [
+    retreiver_about_qeustion
+    ]
 
 # Agent setup
 agent = (
@@ -117,7 +81,7 @@ agent_executor = AgentExecutor(
     agent=agent,
     tools=tools,
     verbose=True,
-    max_iterations=6,
+    max_iterations=3
 )
 
 # Logging setup
@@ -130,12 +94,12 @@ router = APIRouter()
 @router.post("/process_query")
 async def process_user_query(query: Query):
     try:
+        logger.info(f"Processing query: {query}")
         if not query.session_id:
             query.session_id = str(uuid4())
 
         chat_history = user_sessions.get(query.session_id, [])
         chat_history.append(f"User: {query.text}")
-
         logger.info(
             f"Current chat history for session {query.session_id}: {chat_history}"
         )
@@ -150,8 +114,6 @@ async def process_user_query(query: Query):
 
         chat_history.append(f"Assistant: {result['output']}")
 
-        if len(chat_history) > 20:
-            chat_history = chat_history[-20:]
 
         user_sessions[query.session_id] = chat_history
 
