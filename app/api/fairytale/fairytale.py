@@ -3,7 +3,10 @@ from app.api.fairytale.utils.fairytale_utils import (
     create_pairy_chain,
     save_result_to_json,
 )
-from app.api.fairytale.utils.fairytale_image_utils import generate_all_images
+from app.api.fairytale.utils.fairytale_image_utils import (
+    generate_all_images,
+    generate_image,
+)
 from app.api.fairytale.models import FairytaleInput
 
 from dotenv import load_dotenv
@@ -29,12 +32,11 @@ async def generate_fairytale(input_data: FairytaleInput):
         user_id = data["user_id"]
         baby_id = data["baby_id"]
 
-
         # Request 데이터 전처리(필요한 데이터만 추출)
         data = select_keys_from_diary_data(data)
         # 프롬프트 로드
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        prompt_path = os.path.join(current_dir, "prompts", "fairytale_prompt_ver2.txt")
+        prompt_path = os.path.join(current_dir, "prompts", "fairytale_prompt_ver3.txt")
 
         with open(
             prompt_path,
@@ -68,34 +70,52 @@ async def generate_fairytale(input_data: FairytaleInput):
                 for char in result.get("characters", [])
             ]
         )
-        # 이미지 생성 클라이언트 생성
-        client = AsyncOpenAI(api_key=apikey)
-        
-        # 이미지 생성
-        cover_image, page_images = await generate_all_images(
-            client, 
-            characters_info, 
-            result["book_cover_description"], 
-            result["pages"]
+        all_page_text = ""
+        all_page_image_prompt = ""
+        for i in result["pages"]:
+            all_page_text += i["text"] + "\n"
+            all_page_image_prompt += i["illustration_prompt"] + "\n"
+        print(all_page_text)
+
+        all_page_image_prompt = (
+            f"Characters information: {characters_info}\n"
+            + result["book_cover_description"]
+            + all_page_image_prompt
+            + """\nGenerate image a grid that consists of 4 panels each panel image must be 512 by 512 pixels. Panel image order is left to right, top to bottom. Do not include any text in the images."""
+            # Each panel image must be different from contents of other panels and ensure that no part of any panel image is cut off or cropped..
+            # Panel image order is left to right, top to bottom.
+            # Each panel must be a standalone image, not connected or continuous with other panels.
+            # """
         )
+        print(all_page_image_prompt)
+        # # 이미지 생성 클라이언트 생성
+        client = AsyncOpenAI(api_key=apikey)
+        url = await generate_image(client, all_page_image_prompt)
+        print(url)
 
-        # 결과 처리
-        result["title_img_path"] = cover_image
-        result["pages"] = [{"image_url": img[1]["image_url"], **img[1]} for img in sorted(page_images, key=lambda x: x[0])]
-        
+        # # 이미지 생성
+        # cover_image, page_images = await generate_all_images(
+        #     client,
+        #     characters_info,
+        #     result["book_cover_description"],
+        #     result["pages"]
+        # )
 
-        result.update({"user_id": user_id, "baby_id": baby_id})
-        logging.info(f"Result: {result}")
-        # 총 소요 시간 계산
+        # # 결과 처리
+        # result["title_img_path"] = cover_image
+        # result["pages"] = [{"image_url": img[1]["image_url"], **img[1]} for img in sorted(page_images, key=lambda x: x[0])]
+
+        # result.update({"user_id": user_id, "baby_id": baby_id})
+        # logging.info(f"Result: {result}")
+        # # 총 소요 시간 계산
         end_time = time.time()
         total_time = end_time - start_time
         logging.info(f"Total time: {total_time:.2f} seconds")
 
-        # JSON 파일로 결과 저장
-        save_result_to_json(result, "fairytale_result_fix_timeout_ver3_1.json")
-        logging.info("JSON file saved")
+        # # JSON 파일로 결과 저장
+        # save_result_to_json(result, "fairytale_result_fix_timeout_ver3_1.json")
+        # logging.info("JSON file saved")
 
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
