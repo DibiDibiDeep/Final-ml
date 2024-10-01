@@ -1,27 +1,52 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import Dict, List
-from uuid import uuid4
+from typing import List, Union
+from dotenv import load_dotenv
 import os
+from pydantic import BaseModel
 import logging
+from uuid import uuid4
+from typing import Dict
 
+from langchain.agents.format_scratchpad.log import format_log_to_str
+from langchain.agents.output_parsers import ReActSingleInputOutputParser
+from langchain.prompts import PromptTemplate
+from langchain.schema import AgentAction, AgentFinish
+from langchain.tools.render import render_text_description
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.agents.format_scratchpad import format_to_openai_function_messages
-from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
-from langchain.agents import AgentExecutor
-from langchain_core.utils.function_calling import convert_to_openai_function
 
 from .tools import (
-    retreiver_about_qeustion
+    retriever_assistant, 
+    classify_intent,
+    emphaty_assistant
+    )
+from .chains import emphaty_chain, vacant_chain
+from .utils.agent_util import find_tool
+
+from fastapi import APIRouter, HTTPException
+
+
+# template load
+current_dir = os.path.dirname(os.path.abspath(__file__))
+prompts_dir = os.path.join(current_dir, "prompts", 'daysummary_react_prompt.txt')
+with open(prompts_dir, "r") as f:
+    template = f.read()
+tools = [
+    retriever_assistant, 
+    classify_intent,
+    emphaty_assistant]
+
+# Prompt setting
+prompt = PromptTemplate.from_template(template)
+prompt = prompt.partial(
+    tools=render_text_description(tools),
+    tool_names=", ".join(t.name for t in tools),
 )
 
-openai_api_key = os.getenv("OPENAI_API_KEY")
-llm_model = os.getenv("LLM_MODEL")
-
-# User session management
-user_sessions: Dict[str, List[str]] = {}
-
+llm = ChatOpenAI(
+        temperature=0,
+        stop=["\nObservation", "Observation"],
+        )
+# agent = prompt | llm | ReActSingleInputOutputParser()
+agent: Union[AgentAction, AgentFinish] = prompt | llm | ReActSingleInputOutputParser()
 
 class Query(BaseModel):
     baby_id: int
@@ -29,104 +54,77 @@ class Query(BaseModel):
     session_id: str = None
     text: str
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-prompt_path = os.path.join(current_dir, "prompts", "daysummary_prompt_ver2.txt")
-
-with open(
-    prompt_path, "r", encoding="utf-8"
-) as file:
-    template = file.read()
-
-# Agent prompt
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            template,
-        ),
-        ("human", "user_id: {user_id}, baby_id: {baby_id}\nQuery: {input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-        MessagesPlaceholder(variable_name="chat_history"),
-    ]
-)
-
-# LLM and tools setup
-llm = ChatOpenAI(
-    model_name=llm_model, openai_api_key=openai_api_key, temperature=0
-)
-
-
-tools = [
-    retreiver_about_qeustion
-    ]
-
-# Agent setup
-agent = (
-    {
-        "input": lambda x: x["input"],
-        "user_id": lambda x: x["user_id"],
-        "baby_id": lambda x: x["baby_id"],
-        "agent_scratchpad": lambda x: format_to_openai_function_messages(
-            x["intermediate_steps"]
-        ),
-        "chat_history": lambda x: x["chat_history"],
-    }
-    | prompt
-    | llm.bind(functions=[convert_to_openai_function(t) for t in tools])
-    | OpenAIFunctionsAgentOutputParser()
-)
-
-# AgentExecutor setup
-agent_executor = AgentExecutor(
-    agent=agent,
-    tools=tools,
-    verbose=True,
-    max_iterations=3
-)
-
-# Logging setup
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 router = APIRouter()
 
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+# User session management
+user_sessions: Dict[str, List[str]] = {}
+# if __name__ == "__main__":
 @router.post("/process_query")
 async def process_user_query(query: Query):
-    try:
-        logger.info(f"Processing query: {query}")
-        if not query.session_id:
-            query.session_id = str(uuid4())
+    # try:
+    logger.info(f"Processing query: {query}")
+    if not query.session_id:
+        session_id = str(uuid4())
 
-        chat_history = user_sessions.get(query.session_id, [])
-        chat_history.append(f"User: {query.text}")
-        logger.info(
-            f"Current chat history for session {query.session_id}: {chat_history}"
-        )
-        result = agent_executor.invoke(
+    input = query.text
+    user_id = query.user_id
+    baby_id = query.baby_id
+    session_id = query.session_id
+
+    chat_history = user_sessions.get(session_id, [])
+    chat_history.append(f"User: {input}")
+    logger.info(
+        f"Current chat history for session {session_id}: {chat_history}"
+    )
+    output_format = {"user_id": user_id, "baby_id": baby_id, "session_id": session_id}
+    # Invoke
+    intermediate_steps = []
+    agent_step = None
+
+    while not isinstance(agent_step, AgentFinish):
+        agent_step = agent.invoke(
             {
-                "input": query.text,
+                "input": f"user_id: {user_id}, baby_id: {baby_id}, input: {input}",
+                "agent_scratchpad": format_log_to_str(intermediate_steps),
                 "chat_history": chat_history,
-                "user_id": query.user_id,
-                "baby_id": query.baby_id,
             }
         )
+        if isinstance(agent_step, AgentAction):
+            tool_name = agent_step.tool
+            tool_input = agent_step.tool_input
+            # if tool_name == 'SHARING':
+            #     observation = emphaty_chain.invoke({"query": tool_input, "chat_history": chat_history})
+            #     output_format.update({"response": observation})
+            #     return output_format
+            # else:
+            tool_to_use = find_tool(tools, tool_name)
+            observation = tool_to_use.invoke(tool_input)
+            print(f"{observation=}")
+            # 사용자 질의가 SHARING일 경우, 공감 or 질문
+            # if tool_name == 'classify_intent' and observation == 'SHARING':
+            #     result = emphaty_chain.invoke({"query": tool_input, "chat_history": chat_history})
+            #     output_format.update({"response": result})
+            #     break
 
-        chat_history.append(f"Assistant: {result['output']}")
+            intermediate_steps.append((agent_step, str(observation)))
+                
 
-
-        user_sessions[query.session_id] = chat_history
-
-        logger.info(
-            f"Updated chat history for session {query.session_id}: {chat_history}"
-        )
-        return {
-            "baby_id": query.baby_id,
-            "user_id": query.user_id,
-            "session_id": query.session_id,
-            "response": result["output"],
-        }
-
-    except Exception as e:
-        logger.error(f"Error processing query: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        if isinstance(agent_step, AgentFinish) or agent_step:
+            # print("=== Agent Finish!!===")
+            # result = agent_step.return_values
+            result = agent_step
+            # print(f"{result=}")
+    if output_format.get("response") is None:
+        print("=== Agent Finish!!===")
+        print(f"{result=}")
+        output_format.update({"response": result.return_values['output']})
+    
+    # Save chat history
+    chat_history.append(f"Bot: {output_format['response']}")
+    user_sessions[session_id] = chat_history
+    return output_format
+                
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=str(e))
