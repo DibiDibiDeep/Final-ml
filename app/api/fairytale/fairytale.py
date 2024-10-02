@@ -3,10 +3,12 @@ from app.api.fairytale.utils.fairytale_utils import (
     create_pairy_chain,
     save_result_to_json,
 )
-from app.api.fairytale.utils.fairytale_image_utils import (
+from app.api.fairytale.utils.image_generation_utils import (
     generate_all_images,
     generate_image,
 )
+from app.api.fairytale.utils.image_cut_utils import detect_and_crop_panels
+import cv2
 from app.api.fairytale.models import FairytaleInput
 
 from dotenv import load_dotenv
@@ -70,29 +72,39 @@ async def generate_fairytale(input_data: FairytaleInput):
                 for char in result.get("characters", [])
             ]
         )
-        all_page_text = ""
-        all_page_image_prompt = ""
-        for i in result["pages"]:
-            all_page_text += i["text"] + "\n"
-            all_page_image_prompt += i["illustration_prompt"] + "\n"
-        print(all_page_text)
+        # 페이지 텍스트와 일러스트레이션 프롬프트 생성
+        all_page_text = "\n".join(page["text"] for page in result["pages"])
+        all_page_image_prompt = "\n".join(page["illustration_prompt"] for page in result["pages"])
 
-        all_page_image_prompt = (
-            f"Characters information: {characters_info}\n"
-            + result["book_cover_description"]
-            + all_page_image_prompt
-            + """\nGenerate image a grid that consists of 4 panels each panel image must be 512 by 512 pixels. Panel image order is left to right, top to bottom. Do not include any text in the images."""
-            # Each panel image must be different from contents of other panels and ensure that no part of any panel image is cut off or cropped..
-            # Panel image order is left to right, top to bottom.
-            # Each panel must be a standalone image, not connected or continuous with other panels.
-            # """
+        # 최종 이미지 프롬프트 생성
+        all_page_image_prompt = "\n".join(
+            [
+            f"Characters information: {characters_info}",
+            result["book_cover_description"],
+            all_page_image_prompt,
+            """
+            Generate image a grid that consists of 4 panels each panel image must be 512 by 512 pixels. 
+            Panel image order is left to right, top to bottom. 
+            Do not include any text in the images.
+            """
+            ]
         )
+        print(all_page_text)
         print(all_page_image_prompt)
         # # 이미지 생성 클라이언트 생성
         client = AsyncOpenAI(api_key=apikey)
         url = await generate_image(client, all_page_image_prompt)
-        print(url)
+        logging.info(f"Generate Image URL: {url}")
 
+        panels = detect_and_crop_panels(url)
+
+        # 결과 저장
+        for i, panel in enumerate(panels):
+            # save_path = current_dir + f'./panel_{i+1}.png'
+            # print(save_path)
+            cv2.imwrite(f'./panel_{i+1}.png', panel)
+        
+        print(f"Successfully saved {len(panels)} panels.")
         # # 이미지 생성
         # cover_image, page_images = await generate_all_images(
         #     client,
