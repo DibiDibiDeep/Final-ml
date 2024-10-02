@@ -15,24 +15,29 @@ from langchain_openai import ChatOpenAI
 
 from .tools import (
     retriever_assistant, 
-    classify_intent,
-    emphaty_assistant
+    cls_intent_assistant,
+    sharing_assistant,
+    write_diary_assistant,
+    save_diary_assistant
     )
-from .chains import emphaty_chain, vacant_chain
 from .utils.agent_util import find_tool
 
 from fastapi import APIRouter, HTTPException
 
-
+llm_model = os.getenv("LLM_MODEL")
+openai_key = os.getenv("OPENAI_API_KEY")
 # template load
 current_dir = os.path.dirname(os.path.abspath(__file__))
-prompts_dir = os.path.join(current_dir, "prompts", 'daysummary_react_prompt.txt')
+prompts_dir = os.path.join(current_dir, "prompts/agent", 'daysummary_react_prompt.txt')
 with open(prompts_dir, "r") as f:
     template = f.read()
 tools = [
     retriever_assistant, 
-    classify_intent,
-    emphaty_assistant]
+    cls_intent_assistant,
+    sharing_assistant,
+    write_diary_assistant,
+    save_diary_assistant
+    ]
 
 # Prompt setting
 prompt = PromptTemplate.from_template(template)
@@ -42,7 +47,9 @@ prompt = prompt.partial(
 )
 
 llm = ChatOpenAI(
+        model = llm_model,
         temperature=0,
+        openai_api_key=openai_key,
         stop=["\nObservation", "Observation"],
         )
 # agent = prompt | llm | ReActSingleInputOutputParser()
@@ -79,6 +86,7 @@ async def process_user_query(query: Query):
         f"Current chat history for session {session_id}: {chat_history}"
     )
     output_format = {"user_id": user_id, "baby_id": baby_id, "session_id": session_id}
+    
     # Invoke
     intermediate_steps = []
     agent_step = None
@@ -88,34 +96,23 @@ async def process_user_query(query: Query):
             {
                 "input": f"user_id: {user_id}, baby_id: {baby_id}, input: {input}",
                 "agent_scratchpad": format_log_to_str(intermediate_steps),
-                "chat_history": chat_history,
+                "chat_history": str(chat_history),
             }
         )
         if isinstance(agent_step, AgentAction):
             tool_name = agent_step.tool
             tool_input = agent_step.tool_input
-            # if tool_name == 'SHARING':
-            #     observation = emphaty_chain.invoke({"query": tool_input, "chat_history": chat_history})
-            #     output_format.update({"response": observation})
-            #     return output_format
-            # else:
             tool_to_use = find_tool(tools, tool_name)
             observation = tool_to_use.invoke(tool_input)
             print(f"{observation=}")
-            # 사용자 질의가 SHARING일 경우, 공감 or 질문
-            # if tool_name == 'classify_intent' and observation == 'SHARING':
-            #     result = emphaty_chain.invoke({"query": tool_input, "chat_history": chat_history})
-            #     output_format.update({"response": result})
-            #     break
+
 
             intermediate_steps.append((agent_step, str(observation)))
                 
 
         if isinstance(agent_step, AgentFinish) or agent_step:
-            # print("=== Agent Finish!!===")
-            # result = agent_step.return_values
             result = agent_step
-            # print(f"{result=}")
+
     if output_format.get("response") is None:
         print("=== Agent Finish!!===")
         print(f"{result=}")
