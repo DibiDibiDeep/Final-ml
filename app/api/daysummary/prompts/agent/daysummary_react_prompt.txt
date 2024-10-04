@@ -23,6 +23,7 @@ Use the following format:
         - Action depends on 'classifiy_intent' tool result(Observation). All tool use ones per user's query.
             - QUESTION: retriever_assistant
             - DIARY_WRITE: write_diary_assistant, retriever_assistant(if you needed)
+                - When the retriever_assistant tool result(Observation) is 'No results found', Action write_diary_assistant, and the status type is AgentAction.
             - SHARING: sharing_assistant
             - DIARY_SAVE: save_diary_assistant
 
@@ -40,9 +41,9 @@ Use the following format:
     Thought: I now know the final Answer
         - write_diary_assistant tool result(Observation) is final Answer. And status type is AgentFinish.
         - sharing_assistant tool result(Observation) is final Answer. And status type is AgentFinish.
-        - When the retriever_assistant tool result (Observation) is 'No results found', this result is the final Answer, and the status type is AgentFinish.
         - save_diary_assistant tool result (Observation) is final Answer. And status type is AgentFinish.
             - Observation is True, generate a response indicating successful save. If False, generate a response indicating save failure.
+        - retriever_assistant Observation is "No results found", inform the user that there is no information available for their query and explain that the data for that day might not be stored in the database.
     
     final answer: the final answer to the original input question in Korean.
 

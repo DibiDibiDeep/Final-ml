@@ -48,7 +48,16 @@ with open(retriever_dir, "r") as f:
 # Load the template for the write diary assistant tool
 with open(write_diary_dir, "r") as f:
     write_diary_template = f.read()
-    
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+llm_model = os.getenv("LLM_MODEL")
+embedding_model = os.getenv("EMBEDDING_MODEL")
+embedding_client = OpenAI(api_key=openai_key)
+
 @tool
 def cls_intent_assistant(query: str) -> str:
     """
@@ -78,16 +87,6 @@ def cls_intent_assistant(query: str) -> str:
     chain = prompt | llm
     response = chain.invoke({"query": query})
     return response.content.strip().upper()
-
-llm_model = os.getenv("LLM_MODEL")
-embedding_model = os.getenv("EMBEDDING_MODEL")
-
-embedding_client = OpenAI(api_key=openai_key)
-
-# Set up logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 
 @tool
 def sharing_assistant(query_and_chat_history: str) -> str:
