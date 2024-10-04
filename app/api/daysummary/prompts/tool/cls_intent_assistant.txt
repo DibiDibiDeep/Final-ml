@@ -21,6 +21,7 @@ Instructions for classification:
    3. Consider the overall context and intent of the query.
    4. Select the most appropriate category based on your analysis.
    5. Return only the category name in uppercase (e.g., "QUESTION", "DIARY_WRITE", "SHARING", or "DIARY_SAVE").
+   
 ----
 
-Intent:
+Query: {query}
