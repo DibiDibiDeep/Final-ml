@@ -99,7 +99,7 @@ async def process_user_query(query: Query):
                 "chat_history": str(chat_history),
             }
         )
-        print(f"{agent_step=}")
+        
         if isinstance(agent_step, AgentAction):
             tool_name = agent_step.tool
             tool_input = agent_step.tool_input

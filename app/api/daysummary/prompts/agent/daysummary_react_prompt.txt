@@ -38,6 +38,8 @@ Observation: the result of the action
 ... (this Thought/Action/Action Input/Observation can repeat 3 times)
 
 Thought: I now know the Final Answer
+    - write_diary_assistant tool result(Observation) is Final Answer. And status type is AgentFinish.
+    - sharing_assistant tool result(Observation) is Final Answer. And status type is AgentFinish.
 
 Final Answer: the final answer to the original input question in Korean.
 
