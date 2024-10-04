@@ -7,7 +7,7 @@ from uuid import uuid4
 from typing import Dict
 
 from langchain.agents.format_scratchpad.log import format_log_to_str
-from langchain.agents.output_parsers import ReActSingleInputOutputParser
+from langchain.agents.output_parsers import ReActSingleInputOutputParser, ReActJsonSingleInputOutputParser
 from langchain.prompts import PromptTemplate
 from langchain.schema import AgentAction, AgentFinish
 from langchain.tools.render import render_text_description
@@ -56,8 +56,8 @@ llm = ChatOpenAI(
 agent: Union[AgentAction, AgentFinish] = prompt | llm | ReActSingleInputOutputParser()
 
 class Query(BaseModel):
-    baby_id: int
-    user_id: int
+    baby_id: int = 1
+    user_id: int = 1
     session_id: str = None
     text: str
 
@@ -67,7 +67,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 # User session management
 user_sessions: Dict[str, List[str]] = {}
-# if __name__ == "__main__":
+
 @router.post("/process_query")
 async def process_user_query(query: Query):
     # try:
@@ -99,6 +99,7 @@ async def process_user_query(query: Query):
                 "chat_history": str(chat_history),
             }
         )
+        print(f"{agent_step=}")
         if isinstance(agent_step, AgentAction):
             tool_name = agent_step.tool
             tool_input = agent_step.tool_input
