@@ -7,19 +7,19 @@ from uuid import uuid4
 from typing import Dict
 
 from langchain.agents.format_scratchpad.log import format_log_to_str
-from langchain.agents.output_parsers import ReActSingleInputOutputParser, ReActOutputParser
+from langchain.agents.output_parsers import ReActSingleInputOutputParser
 from langchain.prompts import PromptTemplate
 from langchain.schema import AgentAction, AgentFinish
 from langchain.tools.render import render_text_description
 from langchain_openai import ChatOpenAI
 
 from .tools import (
-    retriever_assistant, 
+    retriever_assistant,
     cls_intent_assistant,
     sharing_assistant,
     write_diary_assistant,
-    save_diary_assistant
-    )
+    save_diary_assistant,
+)
 from .utils.agent_util import find_tool
 
 from fastapi import APIRouter, HTTPException
@@ -28,16 +28,16 @@ llm_model = os.getenv("LLM_MODEL")
 openai_key = os.getenv("OPENAI_API_KEY")
 # template load
 current_dir = os.path.dirname(os.path.abspath(__file__))
-prompts_dir = os.path.join(current_dir, "prompts/agent", 'daysummary_react_prompt.txt')
+prompts_dir = os.path.join(current_dir, "prompts/agent", "daysummary_react_prompt.txt")
 with open(prompts_dir, "r") as f:
     template = f.read()
 tools = [
-    retriever_assistant, 
+    retriever_assistant,
     cls_intent_assistant,
     sharing_assistant,
     write_diary_assistant,
-    save_diary_assistant
-    ]
+    save_diary_assistant,
+]
 
 # Prompt setting
 prompt = PromptTemplate.from_template(template)
@@ -47,13 +47,13 @@ prompt = prompt.partial(
 )
 
 llm = ChatOpenAI(
-        model = llm_model,
-        temperature=0,
-        openai_api_key=openai_key,
-        stop=["\nObservation", "Observation"],
-        )
-# agent = prompt | llm | ReActSingleInputOutputParser()
-agent: Union[AgentAction, AgentFinish] = prompt | llm | ReActOutputParser()
+    model=llm_model,
+    temperature=0,
+    openai_api_key=openai_key,
+    stop=["\nObservation", "Observation"],
+)
+agent: Union[AgentAction, AgentFinish] = prompt | llm | ReActSingleInputOutputParser()
+
 
 class Query(BaseModel):
     baby_id: int = 1
@@ -61,12 +61,14 @@ class Query(BaseModel):
     session_id: str = None
     text: str
 
+
 router = APIRouter()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 # User session management
 user_sessions: Dict[str, List[str]] = {}
+
 
 @router.post("/process_query")
 async def process_user_query(query: Query):
@@ -82,11 +84,9 @@ async def process_user_query(query: Query):
 
     chat_history = user_sessions.get(session_id, [])
     chat_history.append(f"User: {input}")
-    logger.info(
-        f"Current chat history for session {session_id}: {chat_history}"
-    )
+    logger.info(f"Current chat history for session {session_id}: {chat_history}")
     output_format = {"user_id": user_id, "baby_id": baby_id, "session_id": session_id}
-    
+
     # Invoke
     intermediate_steps = []
     agent_step = None
@@ -107,9 +107,7 @@ async def process_user_query(query: Query):
             observation = tool_to_use.invoke(tool_input)
             print(f"{observation=}")
 
-
             intermediate_steps.append((agent_step, str(observation)))
-                
 
         if isinstance(agent_step, AgentFinish) or agent_step:
             result = agent_step
@@ -117,12 +115,12 @@ async def process_user_query(query: Query):
     if output_format.get("response") is None:
         print("=== Agent Finish!!===")
         print(f"{result=}")
-        output_format.update({"response": result.return_values['output']})
-    
+        output_format.update({"response": result.return_values["output"]})
+
     # Save chat history
     chat_history.append(f"Bot: {output_format['response']}")
     user_sessions[session_id] = chat_history
     return output_format
-                
+
     # except Exception as e:
     #     raise HTTPException(status_code=500, detail=str(e))

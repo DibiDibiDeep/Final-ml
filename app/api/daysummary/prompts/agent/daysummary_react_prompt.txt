@@ -43,15 +43,15 @@ Use the following format:
         - sharing_assistant tool result(Observation) is final Answer. And status type is AgentFinish.
         - save_diary_assistant tool result (Observation) is final Answer. And status type is AgentFinish.
             - Observation is True, generate a response indicating successful save. If False, generate a response indicating save failure.
-        - retriever_assistant Observation is "No results found", inform the user that there is no information available for their query and explain that the data for that day might not be stored in the database.
-    
+        - When retriever_assistant Observation is "No results found", final Answer is following:
+            - Inform the user that there is no information available for their query and explain that the data for that day might not be stored in the database.
+            - And status type is AgentFinish.
     final answer: the final answer to the original input question in Korean.
 
 Use the following output format:
     - Your possible output formats are AgentAction and AgentFinish.
         - If the output signals that an action should be taken, should be in the below format. This will result in an AgentAction being returned.
             'Thought: agent thought here Action: cls_intent_assistant Action Input: {{"query":str}}'
-            
         - If the output signals that a final answer should be given, should be in the below format. This will result in an AgentFinish being returned.
             'Thought: I now know the final Answer. Final Answer: final answer'
 Begin!
