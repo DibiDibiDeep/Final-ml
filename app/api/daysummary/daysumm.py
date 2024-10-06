@@ -102,11 +102,13 @@ async def process_user_query(query: Query):
                     return_values={"output": observation},
                     log="Used except_situation_assistant due to no results from retriever_assistant.",
                 )
-            # 특정 도구들의 경우 바로 에이전트 종료
-            elif tool_name in [
-                "write_diary_assistant",
-                "sharing_assistant",
+
+            # 특정 도구들의 경우 출력한 답변을 최종 답변으로 바로 사용.
+            if tool_name in [
                 "except_situation_assistant",
+                "sharing_assistant",
+                "write_diary_assistant",
+                "save_diary_assistant",
             ]:
                 agent_step = AgentFinish(
                     return_values={"output": observation},
