@@ -99,7 +99,7 @@ async def process_user_query(query: Query):
                 )
                 observation = except_tool.invoke(except_input)
                 agent_step = AgentFinish(
-                    return_values={"output": "except_situation_assistant"},
+                    return_values={"output": observation},
                     log="Used except_situation_assistant due to not clear.",
                 )
             # 사용자 쿼리가 모호하거나 관련이 없는 경우 처리
