@@ -35,7 +35,7 @@ Use the following format:
         - Use sharing_assistant to generate a response based on the user's shared content.
     - DIARY_SAVE
         -  Use save_diary_assistant to save the diary entry when user explicitly request save diary. 
-    - EXCEPT_SITUATION
+    - EXCEPT
         - Use except_situation_assistant to generate a response when it's difficult to choose the next Action during the Thought process.
 
 - Action depends on Observation.
@@ -48,7 +48,7 @@ Use the following format:
         - sharing_assistant
     - DIARY_SAVE
         - save_diary_assistant
-    - EXCEPT_SITUATION
+    - EXCEPT
         - except_situation_assistant
 
 - Action Input format depends on the tool being used:
