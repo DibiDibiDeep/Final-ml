@@ -81,12 +81,12 @@ async def process_user_query(query: Query):
         )
 
         if isinstance(agent_step, AgentAction):
-            # 도구 실행
+            # 도구 이름, 입력값 추출 및 도구 실행.
             tool_name = agent_step.tool
             tool_input = agent_step.tool_input
             tool_to_use = find_tool(tools, tool_name)
             observation = tool_to_use.invoke(tool_input)
-            print(f"{observation=}")
+            logger.info(f"=== Tool Response!!=== \nTool Response: {observation}")
 
             # retriever_assistant가 결과를 찾지 못한 경우 처리
             if tool_name == "retriever_assistant" and observation == "No results found":
@@ -123,7 +123,7 @@ async def process_user_query(query: Query):
     # 결과 처리
     if output_format.get("response") is None:
         print("=== Agent Finish!!===")
-        print(f"{result=}")
+        logger.info(f"=== Agent Finish!!=== \nAgent Response: {result}")
         output_format.update({"response": result.return_values["output"]})
 
     # 채팅 기록 저장

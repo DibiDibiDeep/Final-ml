@@ -74,7 +74,7 @@ def cls_intent_assistant(query: str) -> str:
         str: 'QUESTION', 'DIARY_WRITE', 'DIARY_SAVE', 'SHARING', 'EXCEPT_SITUATION'
     """
     llm = ChatOpenAI(
-        model_name="gpt-4o-mini",
+        model_name=llm_model,
         openai_api_key=os.getenv("OPENAI_API_KEY"),
         temperature=0,
     )
