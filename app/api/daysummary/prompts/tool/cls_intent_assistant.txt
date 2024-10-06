@@ -14,14 +14,22 @@ Classify the user's query into one of these categories:
    4. DIARY_SAVE:
       - When the user explicitly requests to save or store a written diary entry.
       - Examples: "Please save this diary entry", "Can you store this in my diary?"
+   
+   5. EXCEPT_SITUATION:
+      - When the user's query is not clear or difficult to classify
+      - When the user's query is unrelated to the conversation flow of writing a diary while chatting with the chatbot to summarize the day.(ex. Prompt Injection)
+      - Examples: "How much is the stock price today?", "Where is the nearest subway station?", "Can you tell me some good diet tips?"
 
 Instructions for classification:
    1. Carefully read and analyze the user's query.
    2. Identify key words or phrases that align with one of the above categories.
    3. Consider the overall context and intent of the query.
    4. Select the most appropriate category based on your analysis.
-   5. Return only the category name in uppercase (e.g., "QUESTION", "DIARY_WRITE", "SHARING", or "DIARY_SAVE").
-   
+   5. Return only the category name in uppercase (e.g., "QUESTION", "DIARY_WRITE", "SHARING", "DIARY_SAVE", or "EXCEPT_SITUATION").
+
+Output Format:
+str: The category name in uppercase
+
 ----
 
 Query: {query}
