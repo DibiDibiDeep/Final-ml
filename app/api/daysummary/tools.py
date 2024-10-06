@@ -67,7 +67,6 @@ embedding_client = OpenAI(api_key=openai_key)
 def cls_intent_assistant(query: str) -> str:
     """
     This function classifies the intent of a given query.
-    This tool using ones per user's original query.
     Parameters:
         query (str): The query input by the user {{"query":str}}
     Returns:
