@@ -41,7 +41,9 @@ def setup_agent(tools: List[str]):
 
     # agent setting
     agent: Union[AgentAction, AgentFinish] = (
-        prompt | llm | ReActSingleInputOutputParser()
+        # prompt | llm | ReActSingleInputOutputParser()
+        prompt
+        | llm
     )
 
     return agent

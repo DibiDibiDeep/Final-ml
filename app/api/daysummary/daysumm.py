@@ -5,7 +5,7 @@ from typing import Dict
 import json
 
 from langchain.agents.format_scratchpad.log import format_log_to_str
-
+from langchain.agents.output_parsers import ReActSingleInputOutputParser
 from langchain.schema import AgentAction, AgentFinish
 
 from .tools import (
@@ -36,7 +36,7 @@ tools = [
 ]
 # 에이전트 설정
 agent = setup_agent(tools)
-
+output_parser = ReActSingleInputOutputParser()
 router = APIRouter()
 
 # 사용자 세션 관리를 위한 딕셔너리
@@ -92,7 +92,33 @@ async def process_user_query(query: Query, reset_history: bool = False):
                 "chat_history": str(chat_history),
             }
         )
+        # 에이전트 출력 형식 바람직항 형태로 생성하지 않은 경우 에러 핸들링 로직 추가.
+        # 출력 결과 'Action' or 'Final Answer' 가 없는 경우 처리. -> except_situation_assistant 도구 사용하여 답변 생성 후 로직 종료.
+        if (
+            "Action" not in agent_step.content
+            or "Final Answer" not in agent_step.content
+        ):
+            tool_name = "except_situation_assistant"
+            tool_input = json.dumps(
+                {
+                    "query": agent_step.content.strip(),
+                    "thought": "I see that your input is a bit unclear, and I'm not sure how to proceed. Would you like to share more about your day or perhaps ask a specific question? Let me know how I can assist you!",
+                }
+            )
+            tool_to_use = find_tool(tools, tool_name)
+            observation = tool_to_use.invoke(tool_input)
+            logger.info(f"=== Tool Response!!=== \nTool Response: {observation}")
+            agent_step = AgentFinish(
+                return_values={"output": observation},
+                log="Used except_situation_assistant due to not clear.",
+            )
+        else:
+            # output parser로 파싱이 가능한 경우.
+            # 출력 결과 'Action' or 'Final Answer' 가 있는 경우 처리.
+            agent_step = output_parser.parse(agent_step.content)
+            print(f"agent_step after parse : {agent_step}")
 
+        # 추가 행동이 필요한 경우
         if isinstance(agent_step, AgentAction):
             # 도구 이름, 입력값 추출 및 도구 실행.
             tool_name = agent_step.tool
@@ -130,7 +156,7 @@ async def process_user_query(query: Query, reset_history: bool = False):
                     log="Used except_situation_assistant due to difficult to choose the next Action during the Thought process.",
                 )
 
-            # 특정 도구들의 경우 출력한 답변을 최종 답변으로 바로 사용.
+            # 특정 도구들의 경우 출력한 답변을 최종 답변으로 바로 사용. 다음 행동이 필요 없음.
             if tool_name in [
                 "except_situation_assistant",
                 "sharing_assistant",
