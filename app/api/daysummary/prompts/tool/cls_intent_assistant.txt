@@ -27,8 +27,6 @@ Instructions for classification:
    4. Select the most appropriate category based on your analysis.
    5. Return only the category name in uppercase (e.g., "QUESTION", "DIARY_WRITE", "SHARING", "DIARY_SAVE", or "EXCEPT").
 
-Output Format:
-str: The category name in uppercase
 
 ----
 
