@@ -40,28 +40,41 @@ agent = setup_agent(tools)
 router = APIRouter()
 
 # 사용자 세션 관리를 위한 딕셔너리
-user_sessions: Dict[str, List[str]] = {}
+user_sessions: Dict[str, Dict[str, List[str]]] = {}
 
 
+# 채팅 기록 초기화 로직 추가.(reset_history)
 @router.post("/process_query")
-async def process_user_query(query: Query):
+async def process_user_query(query: Query, reset_history: bool = False):
     # 로깅: 쿼리 처리 시작
     logger.info(f"Processing query: {query}")
-
-    # 세션 ID가 없으면 새로 생성
-    if not query.session_id:
-        session_id = str(uuid4())
 
     # 쿼리에서 필요한 정보 추출
     input = query.text
     user_id = query.user_id
     baby_id = query.baby_id
-    session_id = query.session_id
+    # 세션 ID가 없으면 새로 생성
+    if not query.session_id:
+        session_id = str(uuid4())
+    else:
+        session_id = query.session_id
 
-    # 채팅 기록 가져오기 또는 새로 생성
-    chat_history = user_sessions.get(session_id, [])
+    # 사용자 세션 키 생성 (user_id와 session_id 결합)
+    user_session_key = f"{user_id}:{session_id}"
+
+    # user_sessions 딕셔너리 초기화 확인
+    if user_session_key not in user_sessions:
+        user_sessions[user_session_key] = {}
+
+    # 채팅 기록 초기화 로직
+    if reset_history:
+        user_sessions[user_session_key][baby_id] = []
+        logger.info(f"Chat history reset for user {user_id}, baby {baby_id}")
+        chat_history = []
+    else:
+        chat_history = user_sessions[user_session_key].get(baby_id, [])
+
     chat_history.append(f"User: {input}")
-    logger.info(f"Current chat history for session {session_id}: {chat_history}")
 
     # 출력 형식 설정
     output_format = {"user_id": user_id, "baby_id": baby_id, "session_id": session_id}
@@ -142,7 +155,11 @@ async def process_user_query(query: Query):
 
     # 채팅 기록 저장
     chat_history.append(f"Bot: {output_format['response']}")
-    user_sessions[session_id] = chat_history
+    user_sessions[user_session_key][baby_id] = chat_history
+    logger.info(
+        f"Current chat history for user {user_id}, baby {baby_id}: {chat_history}"
+    )
+
     return output_format
 
     # 예외 처리
