@@ -16,7 +16,10 @@ from app.api.fairytale.utils.fairytale_utils import (
 from app.api.fairytale.utils.image_generation_utils import (
     generate_image,
 )
-from app.api.fairytale.utils.image_cut_utils import detect_and_crop_panels
+from app.api.fairytale.utils.image_cut_utils import (
+    detect_and_crop_panels,
+    numpy_to_base64,
+)
 from app.api.fairytale.models import FairytaleInput
 import cv2
 from openai import AsyncOpenAI
@@ -28,14 +31,6 @@ load_dotenv()
 apikey = os.getenv("OPENAI_API_KEY")
 router = APIRouter()
 
-def numpy_to_base64(image):
-    # OpenCV uses BGR, convert to RGB
-    if len(image.shape) == 3 and image.shape[2] == 3:
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # Encode image to jpg
-    _, buffer = cv2.imencode('.png', image)
-    # Convert to base64 string
-    return base64.b64encode(buffer).decode('utf-8')
 
 @router.post("/generate_fairytale")
 async def generate_fairytale(input_data: FairytaleInput):
@@ -75,7 +70,6 @@ async def generate_fairytale(input_data: FairytaleInput):
             "art_style": "Cartoon animated",
         }
     )
-    print(result)
     logging.info("Fairytale generation completed")
 
     # 캐릭터 정보를 문자열로 변환
@@ -85,8 +79,7 @@ async def generate_fairytale(input_data: FairytaleInput):
             for char in result.get("characters", [])
         ]
     )
-    # 페이지 텍스트와 일러스트레이션 프롬프트 생성
-    all_page_text = "\n".join(page["text"] for page in result["pages"])
+    # 일러스트레이션 프롬프트 생성
     all_page_image_prompt = "\n".join(page["illustration_prompt"] for page in result["pages"])
 
     # 최종 이미지 프롬프트 생성
@@ -107,12 +100,18 @@ async def generate_fairytale(input_data: FairytaleInput):
     url = await generate_image(client, all_page_image_prompt)
     logging.info(f"Generate Image URL: {url}")
 
+    # 이미지 다운로드 및 패널로 분할
     panels = detect_and_crop_panels(url)
+    # 패널 이미지 base64 인코딩
     base64_panels = [numpy_to_base64(panel) for panel in panels]
-    result['cover_illustration'] = base64_panels.pop(0)
 
+    # 결과 표지 이미지 추가
+    result['cover_illustration'] = base64_panels.pop(0)
+    # 페이지별 이미지 추가
     for page, panel in zip(result["pages"], base64_panels):
         page["illustration"] = panel
+        
+    # 결과에 사용자 ID, 아기 ID 추가
     result.update({"user_id": user_id, "baby_id": baby_id})
     # 총 소요 시간 계산
     end_time = time.time()

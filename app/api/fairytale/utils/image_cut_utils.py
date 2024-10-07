@@ -2,6 +2,13 @@ import cv2
 import numpy as np
 import requests
 import os
+import  base64
+
+def numpy_to_base64(image):
+    # Encode image to jpg
+    _, buffer = cv2.imencode('.png', image)
+    # Convert to base64 string
+    return base64.b64encode(buffer).decode('utf-8')
 
 def detect_and_crop_panels(image_url):
     # 이미지 URL에서 다운로드
