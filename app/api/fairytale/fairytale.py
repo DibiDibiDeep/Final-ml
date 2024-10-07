@@ -33,7 +33,7 @@ def numpy_to_base64(image):
     if len(image.shape) == 3 and image.shape[2] == 3:
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     # Encode image to jpg
-    _, buffer = cv2.imencode('.jpeg', image)
+    _, buffer = cv2.imencode('.png', image)
     # Convert to base64 string
     return base64.b64encode(buffer).decode('utf-8')
 
@@ -113,18 +113,17 @@ async def generate_fairytale(input_data: FairytaleInput):
 
     for page, panel in zip(result["pages"], base64_panels):
         page["illustration"] = panel
-    print(result)
+    result.update({"user_id": user_id, "baby_id": baby_id})
     # 총 소요 시간 계산
     end_time = time.time()
     total_time = end_time - start_time
     logging.info(f"Total time: {total_time:.2f} seconds")
-    # print(result)
     
 
     # # JSON 파일로 결과 저장
     save_result_to_json(result, "fairytale_result_base64.json")
     logging.info("JSON file saved")
 
-    # return result
+    return result
     # except Exception as e:
     #     raise HTTPException(status_code=500, detail=str(e))
