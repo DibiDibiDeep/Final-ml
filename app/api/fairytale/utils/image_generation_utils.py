@@ -6,7 +6,24 @@ from requests.exceptions import RequestException
 import os
 from openai import AsyncOpenAI
 
+
 image_model = os.getenv("IMAGE_MODEL")
+
+# 이미지 URL 단축 함수
+async def shorten_url(url, max_retries=3, timeout=5):
+    s = pyshorteners.Shortener(timeout=timeout)
+    
+    for attempt in range(max_retries):
+        try:
+            return s.tinyurl.short(url)
+        except RequestException as e:
+            if attempt == max_retries - 1:
+                logging.error(f"Failed to shorten URL after {max_retries} attempts: {e}")
+                return url  # 실패 시 원본 URL 반환
+            await asyncio.sleep(1)  # 재시도 전 1초 대기
+    logging.info(f"URL:{url}")
+    return url  # 모든 시도 실패 시 원본 URL 반환
+
 
 # 이미지 생성 함수
 async def generate_image(client: AsyncOpenAI, prompt: str):
@@ -82,20 +99,3 @@ async def generate_all_images(client: AsyncOpenAI, characters_info: str, book_co
     page_images = all_results[1:]
     logging.info("All images generation completed")
     return cover_image, page_images
-
-
-# 이미지 URL 단축 함수
-async def shorten_url(url, max_retries=3, timeout=5):
-    s = pyshorteners.Shortener(timeout=timeout)
-    
-    for attempt in range(max_retries):
-        try:
-            return s.tinyurl.short(url)
-        except RequestException as e:
-            if attempt == max_retries - 1:
-                logging.error(f"Failed to shorten URL after {max_retries} attempts: {e}")
-                return url  # 실패 시 원본 URL 반환
-            await asyncio.sleep(1)  # 재시도 전 1초 대기
-    logging.info(f"URL:{url}")
-    return url  # 모든 시도 실패 시 원본 URL 반환
-
