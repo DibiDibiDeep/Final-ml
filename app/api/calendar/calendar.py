@@ -58,7 +58,7 @@ class InvalidImageTypeError(Exception):
 async def process_image(image_input: ImageInput):
     from langchain_teddynote import logging
 
-    logging.langsmith("canlender")
+    # logging.langsmith("canlender")
 
     try:
         baby_id = image_input.baby_id

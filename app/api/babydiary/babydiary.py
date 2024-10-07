@@ -47,7 +47,7 @@ class DiaryInput(BaseModel):
 async def process_report(diary_input: DiaryInput):
     from langchain_teddynote import logging
 
-    logging.langsmith("babydiary")
+    # logging.langsmith("babydiary")
 
     try:
         user_id = diary_input.user_id
