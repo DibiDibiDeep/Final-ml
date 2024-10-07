@@ -3,6 +3,7 @@ import logging
 from uuid import uuid4
 from typing import Dict
 import json
+import re
 
 from langchain.agents.format_scratchpad.log import format_log_to_str
 from langchain.agents.output_parsers import ReActSingleInputOutputParser
@@ -16,7 +17,7 @@ from .tools import (
     save_diary_assistant,
     except_situation_assistant,
 )
-from .utils.agent_util import find_tool, setup_agent
+from .utils.agent_util import find_tool, setup_agent, valid_output_format
 from .models import Query
 from fastapi import APIRouter, HTTPException
 
@@ -92,12 +93,10 @@ async def process_user_query(query: Query, reset_history: bool = False):
                 "chat_history": str(chat_history),
             }
         )
+        # logger.info(f"agent_step before parse : {agent_step.content}")
         # 에이전트 출력 형식 바람직항 형태로 생성하지 않은 경우 에러 핸들링 로직 추가.
         # 출력 결과 'Action' or 'Final Answer' 가 없는 경우 처리. -> except_situation_assistant 도구 사용하여 답변 생성 후 로직 종료.
-        if (
-            "Action" not in agent_step.content
-            or "Final Answer" not in agent_step.content
-        ):
+        if valid_output_format(agent_step.content) == False:
             tool_name = "except_situation_assistant"
             tool_input = json.dumps(
                 {
@@ -116,7 +115,7 @@ async def process_user_query(query: Query, reset_history: bool = False):
             # output parser로 파싱이 가능한 경우.
             # 출력 결과 'Action' or 'Final Answer' 가 있는 경우 처리.
             agent_step = output_parser.parse(agent_step.content)
-            print(f"agent_step after parse : {agent_step}")
+            # logger.info(f"agent_step after parse : {agent_step}")
 
         # 추가 행동이 필요한 경우
         if isinstance(agent_step, AgentAction):

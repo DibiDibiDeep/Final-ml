@@ -2,7 +2,8 @@ from typing import List
 from langchain.tools import Tool
 import os
 from typing import Union
-from langchain.agents.output_parsers import ReActSingleInputOutputParser
+import re
+
 from langchain.prompts import PromptTemplate
 from langchain.schema import AgentAction, AgentFinish
 from langchain.tools.render import render_text_description
@@ -55,3 +56,23 @@ def find_tool(tools: List[Tool], tool_name: str) -> Tool:
         if tool.name == tool_name:
             return tool
     raise ValueError(f"{tool_name}을 가진 Tool을 찾을 수 없습니다.")
+
+def valid_output_format(text: str) -> bool:
+    """
+    Checks if the output format is valid for ReActSingleInputOutputParser.
+    
+    Returns:
+    - True if the format is valid
+    - False if the format is invalid
+    """
+    # Check for Final Answer format
+    if "Final Answer:" in text:
+        return True
+    
+    # Check for Action and Action Input format
+    action_input_regex = r"Action\s*\d*\s*:[\s]*(.*?)[\s]*Action\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
+    if re.search(action_input_regex, text, re.DOTALL):
+        return True
+    
+    # If neither format is found, it's invalid
+    return False

@@ -63,6 +63,10 @@ Use the following format:
     - except_situation_assistant
         - {{"query": query: str, "thought": thought: str}}
 
+Guidelines
+- cls_intent_assistant
+    - You MUST use this tool once per user query.
+
 
 - Output format:
     - Your possible output formats are AgentAction and AgentFinish.
