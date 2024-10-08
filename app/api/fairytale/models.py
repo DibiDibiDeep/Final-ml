@@ -11,9 +11,9 @@ class StoryPage(BaseModel):
         illustration_prompt (str): 이 페이지의 삽화를 생성하기 위한 프롬프트
     """
 
-    text: str = Field(..., description="The text content of the story page")
+    text: str = Field(..., description="The text content of the story page in Korean")
     illustration_prompt: str = Field(
-        ..., description="Prompt for generating an illustration for this page"
+        ..., description="Prompt for generating an illustration for this page in English"
     )
 
 
@@ -27,7 +27,7 @@ class Character(BaseModel):
     """
 
     name: str = Field(..., description="The name of the character")
-    description: str = Field(..., description="Detailed description of the character")
+    description: str = Field(..., description="Detailed description of the character in English")
 
 
 class StoryResponse(BaseModel):

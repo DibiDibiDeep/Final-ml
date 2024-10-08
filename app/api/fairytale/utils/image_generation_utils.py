@@ -99,3 +99,33 @@ async def generate_all_images(client: AsyncOpenAI, characters_info: str, book_co
     page_images = all_results[1:]
     logging.info("All images generation completed")
     return cover_image, page_images
+
+
+def create_image_prompt(result):
+    # 캐릭터 정보를 문자열로 변환
+    characters_info = " ".join(
+        [
+            f"Character Name: {char['name']}\nCharacter Description: {char['description']}\n"
+            for char in result.get("characters", [])
+        ]
+    )
+    # 일러스트레이션 프롬프트 생성
+    all_page_image_prompt = "\n".join(f"Panel {num}:" + page["illustration_prompt"] + "\n" for num, page in enumerate(result["pages"], 2))
+
+    # 최종 이미지 프롬프트 생성
+    dall_e_prompt = "\n".join(
+        [
+            f"Characters information\n{characters_info}",
+            f"Panel 1: " + result["book_cover_description"] + "\n",
+            all_page_image_prompt,
+        ]
+    )
+
+    dall_e_prompt = f"""
+A grid that consists of 4 panels, each showing a character in the 3D Pixar-style cartoon.
+Each panel MUST be a same size square(512 by 512 pixels) and each panel differs in the character's dynamic pose.
+Arrange panels left to right, top to bottom. Include margins between panels.
+Use white color for panel background. And use black color for panel outline.
+Do not include any text in the images.\n
+""" + dall_e_prompt
+    return dall_e_prompt
