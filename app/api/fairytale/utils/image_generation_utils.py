@@ -120,10 +120,12 @@ def create_image_prompt(result):
             all_page_image_prompt,
         ]
     )
-    dall_e_prompt = f"""
-A grid that consists of 4 panels, each showing a character from various dynamic poses, in the style of Cartoon animation. 
-Each panel MUST be a same size square(512 by 512 pixels) and  do not include any text in the images.
-Panel background color is white. Panel outline color is black.\n
-""" + dall_e_prompt
 
+    dall_e_prompt = f"""
+A grid that consists of 4 panels, each showing a character in the 3D Pixar-style cartoon.
+Each panel MUST be a same size square(512 by 512 pixels) and each panel differs in the character's dynamic pose.
+Arrange panels left to right, top to bottom. Include margins between panels.
+Use white color for panel background. And use black color for panel outline.
+Do not include any text in the images.\n
+""" + dall_e_prompt
     return dall_e_prompt

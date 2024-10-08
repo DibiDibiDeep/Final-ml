@@ -10,41 +10,30 @@ def numpy_to_base64(image):
     # Convert to base64 string
     return base64.b64encode(buffer).decode('utf-8')
 
+
 def detect_and_crop_panels(image_url):
     # 이미지 URL에서 다운로드
     response = requests.get(image_url)
     image_array = np.frombuffer(response.content, np.uint8)
     image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-    
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    
-    if image is None:
-        raise ValueError(f"Unable to read image from {image_path}")
-     # 가우시안 블러 적용
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-   
-    # Canny 엣지 검출 사용
-    edges = cv2.Canny(blurred, 50, 150)
-    
-     # 팽창 연산으로 엣지 강화
-    kernel = np.ones((3,3), np.uint8)
-    dilated = cv2.dilate(edges, kernel, iterations=2)
-    # 윤곽선 검출
-    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    # 면적 기준으로 정렬 (큰 것부터)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:4]
 
-    panels = []
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        panel = image[y:y+h, x:x+w]
-        panels.append(panel)
-    
-    # 패널을 왼쪽 상단부터 시계방향으로 정렬
-    panels = sorted(panels, key=lambda p: (p[0][0][1], p[0][0][0]))
-    
+    if image is None:
+        raise ValueError(f"Unable to read image from {image_url}")
+
+    # 이미지 크기 확인
+    height, width = image.shape[:2]
+
+    # 4등분 지점 계산
+    mid_h, mid_w = height // 2, width // 2
+
+    # 4개의 패널로 분할
+    panels = [
+        image[:mid_h, :mid_w],     # 좌상단
+        image[:mid_h, mid_w:],     # 우상단
+        image[mid_h:, :mid_w],     # 좌하단
+        image[mid_h:, mid_w:]      # 우하단
+    ]
+
     return panels
 
 #### 이미지 컷 테스트를 위한 함수.(S3에서 이미지 다운로드 후 패널로 분할)
