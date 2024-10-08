@@ -93,7 +93,6 @@ async def process_user_query(query: Query, reset_history: bool = False):
                 "chat_history": str(chat_history),
             }
         )
-        # logger.info(f"agent_step before parse : {agent_step.content}")
         # 에이전트 출력 형식 바람직항 형태로 생성하지 않은 경우 에러 핸들링 로직 추가.
         # 출력 결과 'Action' or 'Final Answer' 가 없는 경우 처리. -> except_situation_assistant 도구 사용하여 답변 생성 후 로직 종료.
         if valid_output_format(agent_step.content) == False:
@@ -115,7 +114,6 @@ async def process_user_query(query: Query, reset_history: bool = False):
             # output parser로 파싱이 가능한 경우.
             # 출력 결과 'Action' or 'Final Answer' 가 있는 경우 처리.
             agent_step = output_parser.parse(agent_step.content)
-            # logger.info(f"agent_step after parse : {agent_step}")
 
         # 추가 행동이 필요한 경우
         if isinstance(agent_step, AgentAction):
@@ -160,7 +158,6 @@ async def process_user_query(query: Query, reset_history: bool = False):
                 "except_situation_assistant",
                 "sharing_assistant",
                 "write_diary_assistant",
-                "save_diary_assistant",
             ]:
                 agent_step = AgentFinish(
                     return_values={"output": observation},
