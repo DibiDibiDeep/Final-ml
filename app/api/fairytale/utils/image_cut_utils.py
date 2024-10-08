@@ -5,7 +5,7 @@ import os
 import  base64
 
 def numpy_to_base64(image):
-    # Encode image to jpg
+    # Encode image to png
     _, buffer = cv2.imencode('.png', image)
     # Convert to base64 string
     return base64.b64encode(buffer).decode('utf-8')
@@ -18,21 +18,24 @@ def detect_and_crop_panels(image_url):
     
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    # image = cv2.imread(image_url)
     
     if image is None:
         raise ValueError(f"Unable to read image from {image_path}")
+     # 가우시안 블러 적용
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+   
+    # Canny 엣지 검출 사용
+    edges = cv2.Canny(blurred, 50, 150)
     
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    # 이진화
-    _, thresh = cv2.threshold(gray, 250, 255, cv2.THRESH_BINARY_INV)
-    
+     # 팽창 연산으로 엣지 강화
+    kernel = np.ones((3,3), np.uint8)
+    dilated = cv2.dilate(edges, kernel, iterations=2)
     # 윤곽선 검출
-    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
     # 면적 기준으로 정렬 (큰 것부터)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:4]
-    
+
     panels = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)

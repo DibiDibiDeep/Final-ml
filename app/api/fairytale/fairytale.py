@@ -1,11 +1,7 @@
 from dotenv import load_dotenv
-import base64
-import aiohttp
-import asyncio
 import os
 import time
 import logging
-
 
 
 from app.api.fairytale.utils.fairytale_utils import (
@@ -15,6 +11,7 @@ from app.api.fairytale.utils.fairytale_utils import (
 )
 from app.api.fairytale.utils.image_generation_utils import (
     generate_image,
+    create_image_prompt
 )
 from app.api.fairytale.utils.image_cut_utils import (
     detect_and_crop_panels,
@@ -45,7 +42,7 @@ async def generate_fairytale(input_data: FairytaleInput):
     data = select_keys_from_diary_data(data)
     # 프롬프트 로드
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    prompt_path = os.path.join(current_dir, "prompts", "fairytale_prompt_ver3.txt")
+    prompt_path = os.path.join(current_dir, "prompts", "fairytale_prompt_ver4.txt")
 
     with open(
         prompt_path,
@@ -66,38 +63,15 @@ async def generate_fairytale(input_data: FairytaleInput):
             "gender": data["gender"],
             "activities": data["activities"],
             "special": data["special"],
-            # "art_style": data["art_style"],
-            "art_style": "Cartoon animated",
         }
     )
     logging.info("Fairytale generation completed")
 
-    # 캐릭터 정보를 문자열로 변환
-    characters_info = " ".join(
-        [
-            f"{char['name']}: {char['description']}"
-            for char in result.get("characters", [])
-        ]
-    )
-    # 일러스트레이션 프롬프트 생성
-    all_page_image_prompt = "\n".join(page["illustration_prompt"] for page in result["pages"])
-
-    # 최종 이미지 프롬프트 생성
-    all_page_image_prompt = "\n".join(
-        [
-        f"Characters information: {characters_info}",
-        result["book_cover_description"],
-        all_page_image_prompt,
-        """
-        Generate image a grid that consists of 4 panels each panel image must be 512 by 512 pixels. 
-        Panel image order is left to right, top to bottom. 
-        Do not include any text in the images.
-        """
-        ]
-    )
+    dall_e_prompt = create_image_prompt(result)
+    print(dall_e_prompt)
     # # 이미지 생성 클라이언트 생성
     client = AsyncOpenAI(api_key=apikey)
-    url = await generate_image(client, all_page_image_prompt)
+    url = await generate_image(client, dall_e_prompt)
     logging.info(f"Generate Image URL: {url}")
 
     # 이미지 다운로드 및 패널로 분할
