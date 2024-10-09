@@ -4,7 +4,7 @@ import json, os
 from fastapi import APIRouter, HTTPException
 
 from app.api.babydiary.models import DiaryInput
-from app.api.babydiary.utils.babydiary_util import (
+from app.api.babydiary.utils.chain_util import (
     setup_extract_keyword_chain,
     setup_write_diary_chain,
 )
