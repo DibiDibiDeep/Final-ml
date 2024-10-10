@@ -42,7 +42,15 @@ async def insert_day_info(batch: DayInfoBatch):
                 "embedding": get_embedding(client, item.text),
             }
             entities.append(entity)
-        logging.info(f"Successfully created entities\n{entity}")
+        logging.info(f"""
+Successfully created entities\n
+user_id: {entities[0]['user_id']}\n
+baby_id: {entities[0]['baby_id']}\n
+date: {entities[0]['date']}\n
+role: {entities[0]['role']}\n
+text: {entities[0]['text']}\n
+"""
+)
         collection.insert(entities)
         collection.flush()
         logging.info(f"Successfully inserted {len(entities)} entities into the collection\n Total Collection Size: {collection.num_entities}")
