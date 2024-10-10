@@ -82,7 +82,7 @@ image_path: {image_path}
             logging.info("Temp File Delete End...")
         if not ocr_result == "Invalid image type":
             # chain을 사용하여 처리
-            logging.info("LLM Generate AnswerStart...")
+            logging.info("LLM Generate Answer Start...")
             response = chain.invoke({"ocr_result": ocr_result})
             logging.info("LLM Generate Answer End...")
             logging.info(f"\n\nLLM Result:\n{response}")
