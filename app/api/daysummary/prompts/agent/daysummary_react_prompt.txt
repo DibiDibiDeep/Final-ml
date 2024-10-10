@@ -65,7 +65,7 @@ Use the following format:
 
 - Guidelines
     - cls_intent_assistant
-        - You MUST use this tool once per user query.
+        - You MUST use this tool once per original user query.
     - save_diary_assistant
         - Observation
             - If the Observation is 200, inform the user with a warm greeting that the diary has been successfully saved and express appreciation for their effort.

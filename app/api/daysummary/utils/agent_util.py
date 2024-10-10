@@ -3,6 +3,7 @@ from langchain.tools import Tool
 import os
 from typing import Union
 import re
+import json
 
 from langchain.prompts import PromptTemplate
 from langchain.schema import AgentAction, AgentFinish
@@ -46,7 +47,6 @@ def setup_agent(tools: List[str]):
         prompt
         | llm
     )
-
     return agent
 
 
@@ -76,3 +76,12 @@ def valid_output_format(text: str) -> bool:
     
     # If neither format is found, it's invalid
     return False
+
+async def handle_exception(input: str, thought: str, tools: List) -> AgentFinish:
+    except_tool = find_tool(tools, "except_situation_assistant")
+    except_input = json.dumps({"query": input, "thought": thought})
+    observation = await except_tool.ainvoke(except_input)
+    return AgentFinish(
+        return_values={"output": observation},
+        log=f"Used except_situation_assistant due to exception.",
+    )
