@@ -4,7 +4,6 @@ load_dotenv()  # local .env에서 불러옴
 
 import json, os
 from fastapi import APIRouter, HTTPException
-from fastapi import HTTPException
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
@@ -39,8 +38,8 @@ router = APIRouter()
 
 
 class DiaryInput(BaseModel):
-    user_id: str
-    baby_id: str
+    user_id: int
+    baby_id: int
     report: str
 
 
@@ -48,7 +47,7 @@ class DiaryInput(BaseModel):
 async def process_report(diary_input: DiaryInput):
     from langchain_teddynote import logging
 
-    logging.langsmith("babydiary")
+    # logging.langsmith("babydiary")
 
     try:
         user_id = diary_input.user_id
@@ -56,6 +55,10 @@ async def process_report(diary_input: DiaryInput):
         notice = diary_input.report
 
         report = chain.invoke({"report": notice})
+        if report["is_valid"] == False:
+            raise HTTPException(status_code=400, detail="Invalid daycare report content")
+        
+        report.pop('is_valid', None)
         result = chain2.invoke(report)
         report["diary"] = result
         report.update({"user_id": user_id, "baby_id": baby_id, "role": "child"})

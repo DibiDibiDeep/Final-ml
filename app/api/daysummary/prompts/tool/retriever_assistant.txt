@@ -1,0 +1,27 @@
+Given the following search query:
+Generate a Milvus expression to filter the search results. The expression should be based on the fields available in the collection:
+  - user_id (INT64){user_id}, baby_id (INT64){baby_id}
+  - date (VARCHAR, format: "YYYY-MM-DD")
+    - If the user mentions "today", use today's date ({today_date}) to generate the response.
+    - If the user mentions a specific date, use that date in the format "YYYY-MM-DD".
+    - If the user mentions only a day of the week, month, or year, use the corresponding part from today's date ({today_date}) to complete the date.
+    - If no date information is provided in the query, use today's date ({today_date}).
+    - Always include the date in the expression unless the query is clearly not related to any specific date.
+  - role (VARCHAR)
+    - role is 'parents' or 'child'
+    - If the query is about the user's activities, use role == 'parents'
+    - If the query is about the user's child's activities, use role == 'child'
+If two expressions need to be used, connect the expressions with 'and'.
+Return only the expression, without any explanation, additional text, or backticks.
+----
+
+Example 1:
+- Query: user_id: {user_id}, baby_id: {baby_id}, "What did I eat for dinner today?"
+- Expression: user_id == {user_id} and baby_id == {baby_id} and date == '{today_date}' and role == 'parents'
+
+Example 2:
+- Query: user_id: {user_id}, baby_id: {baby_id}, "Did I go to the park with my friends today?"
+- Expression: user_id == {user_id} and baby_id == {baby_id} and date == '{today_date}' and role == 'parents'
+
+----
+Query: {query}

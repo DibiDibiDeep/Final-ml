@@ -19,7 +19,6 @@ import uuid
 from urllib.parse import urlparse, unquote
 import json, os
 
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 set_llm_cache(InMemoryCache())
 openai_api_key = os.getenv("OPENAI_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
@@ -31,7 +30,7 @@ model = ChatOpenAI(
 output_parser = JsonOutputParser(pydantic_object=MonthlySchedule)
 
 with open(
-    "app/api/calendar/prompts/calendar_betterocr_ver2.txt", "r", encoding="utf-8"
+    "app/api/calendar/prompts/calendar_betterocr_ver3.txt", "r", encoding="utf-8"
 ) as file:
     template = file.read()
 
@@ -59,12 +58,19 @@ class InvalidImageTypeError(Exception):
 async def process_image(image_input: ImageInput):
     from langchain_teddynote import logging
 
-    logging.langsmith("canlender")
+    # logging.langsmith("canlender")
 
     try:
         baby_id = image_input.baby_id
         user_id = image_input.user_id
         image_path = image_input.image_path
+        print(
+            f"""
+              baby_id: {baby_id}
+              user_id: {user_id}
+              image_path: {image_path}
+              """
+        )
 
         # S3 URL 감지
         parsed_url = urlparse(image_path)
@@ -85,6 +91,7 @@ async def process_image(image_input: ImageInput):
         else:
             ocr_target = image_path
 
+        print(f"!!!Downloaded OCR target!!! : ", ocr_target)
         # Perform OCR
         print("OCR Start...")
         ocr_result = betterocr.detect_text(

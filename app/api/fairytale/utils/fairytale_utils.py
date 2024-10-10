@@ -19,7 +19,8 @@ def select_keys_from_diary_data(data: dict):
         dict: 선택된 키에 해당하는 데이터
     """
 
-    selected_keys = ["name", "emotion", "activities", "special"]
+    # selected_keys = ["name", "emotion", "activities", "special"]
+    selected_keys = ["name", "activities", "special", "age", "gender"]
     selected_data = {}
 
     for key, value in data.items():

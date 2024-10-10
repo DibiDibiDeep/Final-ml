@@ -1,160 +1,189 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
-from typing import Dict, List
-from uuid import uuid4
-
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.agents.format_scratchpad import format_to_openai_function_messages
-from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
-from langchain.agents import AgentExecutor
-from langchain_community.tools.convert_to_openai import format_tool_to_openai_function
-
+from typing import List
 import logging
-from .config import vector_store
-from .utils.get_data import today_info
+from uuid import uuid4
+from typing import Dict
+import json
+import re
+
+from langchain.agents.format_scratchpad.log import format_log_to_str
+from langchain.agents.output_parsers import ReActSingleInputOutputParser
+from langchain.schema import AgentAction, AgentFinish
+
 from .tools import (
-    parent_retriever_assistant,
-    child_retriever_assistant,
-    classify_intent,
+    retriever_assistant,
+    cls_intent_assistant,
+    sharing_assistant,
+    write_diary_assistant,
+    save_diary_assistant,
+    except_situation_assistant,
 )
-from .utils.preprocess import add_sample_data
-
-router = APIRouter()
-
-# User session management
-user_sessions: Dict[str, List[str]] = {}
+from .utils.agent_util import find_tool, setup_agent, valid_output_format
+from .models import Query
+from fastapi import APIRouter, HTTPException
 
 
-class Query(BaseModel):
-    text: str
-    session_id: str = None
-
-
-class DiaryEntry(BaseModel):
-    name: str
-    emotion: str
-    health: str
-    nutrition: str
-    activities: List[str]
-    social: str
-    special: str
-    keywords: List[str]
-    diary: str
-
-
-# Agent prompt
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            """
-            You are an assistant designed to help with questions about a person's day and write diary entries.
-            Based on the provided intent classification, follow these steps:
-            1. If Intent is 'QUESTION_CHILD', use child_retriever_assistant tool filtering by role: child.
-            2. If Intent is 'QUESTION_PARENT', use parent_retriever_assistant tool filtering by role: parents.
-            3. If Intent is 'DIARY_REQUEST':
-               a. No use tool and write a diary entry from the perspective of the parent, addressing themselves in a casual informal tone, based on the Today's info and chat history.
-               b. When writing the diary, focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities.
-            4. If Intent is 'OTHER':
-               a. Generate a follow-up question that helps the parent reflect on their emotions and memories of the day.
-               b. Formulate a question that offers comfort and encouragement, focusing on the parent's personal experiences and feelings about their day and their child's activities.
-            Use each tool only once per request.
-            """,
-        ),
-        ("human", "Intent: {intent}\nToday's info: {today_info}\nQuery: {input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-        MessagesPlaceholder(variable_name="chat_history"),
-    ]
-)
-
-# LLM and tools setup
-llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
-tools = [parent_retriever_assistant, child_retriever_assistant]
-
-llm_with_tools = llm.bind(functions=[format_tool_to_openai_function(t) for t in tools])
-
-# Agent setup
-agent = (
-    {
-        "input": lambda x: x["input"],
-        "intent": lambda x: x["intent"],
-        "today_info": lambda x: x["today_info"]["today_text"],
-        "agent_scratchpad": lambda x: format_to_openai_function_messages(
-            x["intermediate_steps"]
-        ),
-        "chat_history": lambda x: x["chat_history"],
-    }
-    | prompt
-    | llm.bind(functions=[format_tool_to_openai_function(t) for t in tools])
-    | OpenAIFunctionsAgentOutputParser()
-)
-
-# AgentExecutor setup
-agent_executor = AgentExecutor(
-    agent=agent,
-    tools=tools,
-    verbose=True,
-    max_iterations=4,
-    return_intermediate_steps=True,
-    early_stopping_method="force",
-)
-
-# Logging setup
+# 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# 사용할 도구들 정의
+tools = [
+    retriever_assistant,
+    cls_intent_assistant,
+    sharing_assistant,
+    write_diary_assistant,
+    save_diary_assistant,
+    except_situation_assistant,
+]
+# 에이전트 설정
+agent = setup_agent(tools)
+output_parser = ReActSingleInputOutputParser()
+router = APIRouter()
 
+# 사용자 세션 관리를 위한 딕셔너리
+user_sessions: Dict[str, Dict[str, List[str]]] = {}
+
+
+# 채팅 기록 초기화 로직 추가.(reset_history)
 @router.post("/process_query")
-async def process_user_query(query: Query):
-    try:
-        if not query.session_id:
-            query.session_id = str(uuid4())
+async def process_user_query(query: Query, reset_history: bool = False):
+    # 로깅: 쿼리 처리 시작
+    logger.info(f"Processing query: {query}")
 
-        chat_history = user_sessions.get(query.session_id, [])
-        chat_history.append(f"User: {query.text}")
+    # 쿼리에서 필요한 정보 추출
+    input = query.text
+    user_id = query.user_id
+    baby_id = query.baby_id
+    # 세션 ID가 없으면 새로 생성
+    if not query.session_id:
+        session_id = str(uuid4())
+    else:
+        session_id = query.session_id
 
-        logger.info(
-            f"Current chat history for session {query.session_id}: {chat_history}"
-        )
-        intent_result = classify_intent.invoke(query.text)
-        result = agent_executor.invoke(
+    # 사용자 세션 키 생성 (user_id와 session_id 결합)
+    user_session_key = f"{user_id}:{session_id}"
+
+    # user_sessions 딕셔너리 초기화 확인
+    if user_session_key not in user_sessions:
+        user_sessions[user_session_key] = {}
+
+    # 채팅 기록 초기화 로직
+    if reset_history:
+        user_sessions[user_session_key][baby_id] = []
+        logger.info(f"Chat history reset for user {user_id}, baby {baby_id}")
+        chat_history = []
+    else:
+        chat_history = user_sessions[user_session_key].get(baby_id, [])
+
+    chat_history.append(f"User: {input}")
+
+    # 출력 형식 설정
+    output_format = {"user_id": user_id, "baby_id": baby_id, "session_id": session_id}
+
+    # 에이전트 실행
+    intermediate_steps = []
+    agent_step = None
+
+    while not isinstance(agent_step, AgentFinish):
+        # 에이전트 호출
+        agent_step = agent.invoke(
             {
-                "input": query.text,
-                "intent": intent_result,
-                "chat_history": chat_history,
-                "today_info": today_info,
+                "input": f"user_id: {user_id}, baby_id: {baby_id}, input: {input}",
+                "agent_scratchpad": format_log_to_str(intermediate_steps),
+                "chat_history": str(chat_history),
             }
         )
+        # 에이전트 출력 형식 바람직항 형태로 생성하지 않은 경우 에러 핸들링 로직 추가.
+        # 출력 결과 'Action' or 'Final Answer' 가 없는 경우 처리. -> except_situation_assistant 도구 사용하여 답변 생성 후 로직 종료.
+        if valid_output_format(agent_step.content) == False:
+            tool_name = "except_situation_assistant"
+            tool_input = json.dumps(
+                {
+                    "query": agent_step.content.strip(),
+                    "thought": "I see that your input is a bit unclear, and I'm not sure how to proceed. Would you like to share more about your day or perhaps ask a specific question? Let me know how I can assist you!",
+                }
+            )
+            tool_to_use = find_tool(tools, tool_name)
+            observation = tool_to_use.invoke(tool_input)
+            logger.info(f"=== Tool Response!!=== \nTool Response: {observation}")
+            agent_step = AgentFinish(
+                return_values={"output": observation},
+                log="Used except_situation_assistant due to not clear.",
+            )
+        else:
+            # output parser로 파싱이 가능한 경우.
+            # 출력 결과 'Action' or 'Final Answer' 가 있는 경우 처리.
+            agent_step = output_parser.parse(agent_step.content)
 
-        chat_history.append(f"Assistant: {result['output']}")
+        # 추가 행동이 필요한 경우
+        if isinstance(agent_step, AgentAction):
+            # 도구 이름, 입력값 추출 및 도구 실행.
+            tool_name = agent_step.tool
+            tool_input = agent_step.tool_input
+            tool_to_use = find_tool(tools, tool_name)
+            observation = tool_to_use.invoke(tool_input)
+            logger.info(f"=== Tool Response!!=== \nTool Response: {observation}")
 
-        if len(chat_history) > 20:
-            chat_history = chat_history[-20:]
+            # retriever_assistant가 결과를 찾지 못한 경우 처리
+            if tool_name == "retriever_assistant" and observation == "No results found":
+                except_tool = find_tool(tools, "except_situation_assistant")
+                except_input = json.dumps(
+                    {
+                        "query": input,
+                        "thought": "retriever_assistant found no results, using except_situation_assistant",
+                    }
+                )
+                observation = except_tool.invoke(except_input)
+                agent_step = AgentFinish(
+                    return_values={"output": observation},
+                    log="Used except_situation_assistant due to not clear.",
+                )
+            # 사용자 쿼리가 모호하거나 관련이 없는 경우 처리
+            if observation == "EXCEPT":
+                except_tool = find_tool(tools, "except_situation_assistant")
+                except_input = json.dumps(
+                    {
+                        "query": input,
+                        "thought": "I see that your input is a bit unclear, and I'm not sure how to proceed. Would you like to share more about your day or perhaps ask a specific question? Let me know how I can assist you!",
+                    }
+                )
+                observation = except_tool.invoke(except_input)
+                agent_step = AgentFinish(
+                    return_values={"output": observation},
+                    log="Used except_situation_assistant due to difficult to choose the next Action during the Thought process.",
+                )
 
-        user_sessions[query.session_id] = chat_history
+            # 특정 도구들의 경우 출력한 답변을 최종 답변으로 바로 사용. 다음 행동이 필요 없음.
+            if tool_name in [
+                "except_situation_assistant",
+                "sharing_assistant",
+                "write_diary_assistant",
+            ]:
+                agent_step = AgentFinish(
+                    return_values={"output": observation},
+                    log=f"{tool_name} tool returned {observation}, ending the agent execution.",
+                )
 
-        logger.info(
-            f"Updated chat history for session {query.session_id}: {chat_history}"
-        )
+            intermediate_steps.append((agent_step, str(observation)))
 
-        return {"response": result["output"], "session_id": query.session_id}
+        if isinstance(agent_step, AgentFinish) or agent_step:
+            result = agent_step
 
-    except Exception as e:
-        logger.error(f"Error processing query: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    # 결과 처리
+    if output_format.get("response") is None:
+        print("=== Agent Finish!!===")
+        logger.info(f"=== Agent Finish!!=== \nAgent Response: {result}")
+        output_format.update({"response": result.return_values["output"]})
 
+    # 채팅 기록 저장
+    chat_history.append(f"Bot: {output_format['response']}")
+    user_sessions[user_session_key][baby_id] = chat_history
+    logger.info(
+        f"Current chat history for user {user_id}, baby {baby_id}: {chat_history}"
+    )
 
-@router.post("/add_diary")
-async def add_diary(diary: DiaryEntry):
-    try:
-        document_content = f"날짜: {diary.date}\n이름: {diary.name}\n감정: {diary.emotion}\n건강: {diary.health}\n영양: {diary.nutrition}\n활동: {', '.join(diary.activities)}\n사회적 활동: {diary.social}\n특별한 일: {diary.special}\n키워드: {', '.join(diary.keywords)}"
-        vector_store.add_documents(documents=[document_content], ids=[str(uuid4())])
-        return {"message": "Diary entry added successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return output_format
 
-
-@router.on_event("startup")
-async def startup_event():
-    add_sample_data(vector_store)
+    # 예외 처리
+    # except Exception as e:
+    #     raise HTTPException(status_code=500, detail=str(e))
