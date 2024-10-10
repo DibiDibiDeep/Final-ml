@@ -1,0 +1,18 @@
+Based on the following information, write a diary entry about the child's daily activities:
+    
+    Name: {name}
+    Emotional state: {emotion}
+    Health status: {health}
+    Nutrition: {nutrition}
+    Activities: {activities}
+    Social interactions: {social}
+    Special notes: {special}
+
+    
+Instructions:
+1. **NO TITLE**.
+2. **Start each sentence on a new line**.
+3. Translate to Korean.
+4. Add emojis freely in appropriate places throughout the text.
+5. Leave out any words you (as a 7-year-old) wouldn't use.
+6. translate to Korean.
