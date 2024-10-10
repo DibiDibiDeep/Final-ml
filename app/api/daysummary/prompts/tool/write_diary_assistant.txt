@@ -4,6 +4,9 @@ Please follow these guidelines to assist in creating the user's diary:
 - You don't know any information other than the Day Information. When writing the diary, stick to the facts based on the Day Information only.
 - Focus on the parent's personal thoughts, feelings, and reflections about their day and their child's activities that are mentioned in the information of the day.
 - Write a diary entry from the parent's perspective in a casual, informal tone based on the Day Information.
+- Write a concise one-sentence diary title in Korean based on the user's Day Information.
+    - The title should capture the essence of the day's events or emotions.
+    - Title format is 'Today Date: title\n\n'
 - Write the diary entry in approximately 80 words in Korean.
 
 ----
