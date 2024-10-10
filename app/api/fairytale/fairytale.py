@@ -91,11 +91,6 @@ async def generate_fairytale(input_data: FairytaleInput):
     end_time = time.time()
     total_time = end_time - start_time
     logging.info(f"Total time: {total_time:.2f} seconds")
-    
-
-    # # JSON 파일로 결과 저장
-    save_result_to_json(result, "fairytale_result_base64.json")
-    logging.info("JSON file saved")
 
     return result
     # except Exception as e:
