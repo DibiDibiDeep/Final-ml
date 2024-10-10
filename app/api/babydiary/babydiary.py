@@ -50,12 +50,6 @@ async def process_report(diary_input: DiaryInput):
     report["diary"] = result
     report.update({"user_id": user_id, "baby_id": baby_id, "role": "child"})
 
-    # 결과를 json 파일로 저장(or DB 저장(추후))
-    if not os.path.exists("results/"):
-        os.makedirs("results/")
-    with open(f"results/diary_result.txt", "w", encoding="utf-8") as f:
-        json.dump(report, f, ensure_ascii=False, indent=2)
-
     return report
     # except Exception as e:
     #     raise HTTPException(status_code=500, detail=str(e))
