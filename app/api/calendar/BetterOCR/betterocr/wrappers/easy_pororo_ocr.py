@@ -1,4 +1,5 @@
 from ..engines.easy_pororo_ocr import EasyPororoOcr, load_with_filter
+import logging
 
 
 def parse_languages(lang: list[str]):
@@ -30,7 +31,7 @@ def job_easy_pororo_ocr(_options):
     if isinstance(text, list):
         text = "\\n".join(text)
 
-    print("[*] job_easy_pororo_ocr", text)
+    logging.info(f"[*] easy_pororo_ocr completed")
     return text
 
 
