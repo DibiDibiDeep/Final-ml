@@ -4,7 +4,7 @@ from queue import Queue
 import os
 from langchain_openai import ChatOpenAI
 from langchain.schema import HumanMessage
-
+import logging
 
 from openai import OpenAI
 
@@ -130,9 +130,6 @@ def detect_text(
 
     prompt = prompt.strip()
 
-    print("=====")
-    print(prompt)
-
     # Prioritize user-specified API_KEY
     api_key = options["openai"].get("API_KEY", os.environ.get("OPENAI_API_KEY"))
 
@@ -140,20 +137,6 @@ def detect_text(
     openai_options = options["openai"].copy()
     if "API_KEY" in openai_options:
         del openai_options["API_KEY"]
-
-    # client = OpenAI(
-    #     api_key=api_key,
-    # )
-
-    # print("=====")
-
-    # completion = client.chat.completions.create(
-    #     messages=[
-    #         {"role": "user", "content": prompt},
-    #     ],
-    #     **openai_options,
-    # )
-    # output = completion.choices[0].message.content
 
     chat_model = ChatOpenAI(
         model_name=openai_options.get("model", "gpt-4"),
@@ -165,7 +148,7 @@ def detect_text(
     response = chat_model([message])
     output = response.content
 
-    print("[*] LLM", output)
+    logging.info(f" BetterOCR LLM completed")
 
     result = extract_json(output)
     print(result)

@@ -1,0 +1,28 @@
+Organize the OCR results of a monthly event schedule as follows:
+
+1. Extract activities for each date, splitting by '\n'.
+2. Extract only the day (DD) from dates and normalize to two-digit format. (e.g., '06', '13', '30')
+3. For each activity, extract the following information:
+   - Name of the activity
+   - Start time (if available, format: HH:MM:SS)
+     - If start time is not specified, leave it as null.
+   - End time (if available, format: HH:MM:SS)
+     - If end time is not specified, leave it as null.
+   - Location (default: "원내", unless specified otherwise)
+   - Target group (default: "전체", unless specified otherwise (e.g., "꽃잎반"))
+   - Main information or content of the activity
+   - Additional notes or description (if any)
+     - If additional notes or description is not specified, leave it as null.
+4. Group activities by date.
+5. Include any additional information that doesn't fit into specific dates in the 'etc' field.
+  - If there is any information related to money or fees in the 'etc' field, provide detailed and clear descriptions of these financial matters.
+6. Summarize activities briefly while retaining crucial details.
+7. Omit repetitive or non-essential information.
+8. Always answer in Korean.
+
+
+OCR result: {ocr_result}
+
+Format instructions: {format_instructions}
+
+Provide the organized schedule based on these guidelines.
