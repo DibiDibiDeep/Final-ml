@@ -70,158 +70,91 @@ curl -X 'POST' \
 
 # calendar
 ## request
+<img src="https://github.com/user-attachments/assets/17b5f928-be0b-4028-a85a-621f10140bb3" width="500" height="600"/>
+
 ```bash
 {
   "user_id": 0,
   "baby_id": 0,
-  "image_path": "images/sch8.jpg"
+  "image_path": "images/sch8.jpg" # or s3 bucket url
 }
 ```
 ## response
 ```bash
 {
   "year": null,
-  "month": "08",
+  "month": "04",
   "events": [
+    {
+      "date": "05",
+      "activities": [
+        {
+          "name": "식목일 행사",
+          "start_time": null,
+          "end_time": null,
+          "location": "원내",
+          "target": "전체",
+          "information": "식목일 행사",
+          "notes": null
+        },
+        {
+          "name": "지진대피훈련",
+          "start_time": "09:50:00",
+          "end_time": "10:00:00",
+          "location": "원내",
+          "target": "전체",
+          "information": "지진대피훈련",
+          "notes": "9시30분 등원시간을 지켜주세요."
+        }
+      ]
+    },
     {
       "date": "06",
       "activities": [
         {
-          "name": "물놀이",
-          "time": null,
-          "infomation": "(4세)"
-        },
-        {
-          "name": "열린어린이집 바다반 활동보조",
-          "time": null,
-          "infomation": ""
-        },
-        {
-          "name": "빨간망토 인형극 공연 관람",
-          "time": "[비대면]",
-          "infomation": "(3세~5세)"
+          "name": "동지 후 105일째 되는 날",
+          "start_time": null,
+          "end_time": null,
+          "location": "원내",
+          "target": "전체",
+          "information": "동지 후 105일째 되는 날",
+          "notes": null
         }
       ]
     },
     {
-      "date": "07",
+      "date": "19",
       "activities": [
         {
-          "name": "소방대피훈련",
-          "time": null,
-          "infomation": ""
+          "name": "생일잔치",
+          "start_time": "10:00:00",
+          "end_time": "11:00:00",
+          "location": "원내",
+          "target": "전체",
+          "information": "내가 태어났어요!(생일잔치)",
+          "notes": "많이 축하해주세요."
         }
       ]
     },
     {
-      "date": "08",
+      "date": "26",
       "activities": [
         {
-          "name": "지역사회연계활동 - 마트",
-          "time": null,
-          "infomation": "(4세, 5세)"
-        },
-        {
-          "name": "열린어린이집 바다반 활동보조",
-          "time": null,
-          "infomation": ""
-        }
-      ]
-    },
-    {
-      "date": "13",
-      "activities": [
-        {
-          "name": "물놀이",
-          "time": null,
-          "infomation": "(1세)"
-        },
-        {
-          "name": "열린어린이집 달님반 활동보조",
-          "time": null,
-          "infomation": ""
-        }
-      ]
-    },
-    {
-      "date": "15",
-      "activities": [
-        {
-          "name": "광복절",
-          "time": null,
-          "infomation": "[휴원]"
-        }
-      ]
-    },
-    {
-      "date": "16",
-      "activities": [
-        {
-          "name": "지역사회연계활동 - 마트",
-          "time": null,
-          "infomation": "(3세)"
-        },
-        {
-          "name": "열린어린이집 무지개반 활동보조",
-          "time": null,
-          "infomation": ""
-        }
-      ]
-    },
-    {
-      "date": "21",
-      "activities": [
-        {
-          "name": "탈인형극",
-          "time": null,
-          "infomation": "- 바보온달과 평강공주 [주최: 아토피 천식안심학교] (0세~5세)"
-        }
-      ]
-    },
-    {
-      "date": "22",
-      "activities": [
-        {
-          "name": "비상대응훈련",
-          "time": null,
-          "infomation": "(태풍)"
-        }
-      ]
-    },
-    {
-      "date": "23",
-      "activities": [
-        {
-          "name": "하늘반 여름캠프",
-          "time": null,
-          "infomation": "(5세)"
-        }
-      ]
-    },
-    {
-      "date": "27",
-      "activities": [
-        {
-          "name": "인형극 관람",
-          "time": null,
-          "infomation": "'안전극 : 랑이 담배 피해야 돼요 [약물오남용/중독]' (1세~5세)"
-        }
-      ]
-    },
-    {
-      "date": "30",
-      "activities": [
-        {
-          "name": "어린이 방문교육",
-          "time": null,
-          "infomation": "[주최: 중랑구 어린이 사회복지급식관리지원센터] (0세~2세) - 식사예절 및 올바른 식습관 '설탕의 달콤한 보다 건강한 단 맛이 좋아요'"
+          "name": "정기 소방안전교육 및 대피훈련",
+          "start_time": "09:50:00",
+          "end_time": "10:00:00",
+          "location": "원내",
+          "target": "전체",
+          "information": "정기 소방안전교육 및 대피훈련",
+          "notes": null
         }
       ]
     }
   ],
-  "etc": "생일을 축하합니다. 6일(화) 햇님반 김주원, 내민율, 이시원; 13일(화) 바다반 내소율. 국공립 천사어린이집.",
+  "etc": "학부모 개별상담 안내: 4월 10일부터 어린이집 생활과 성장발달에 관한 개별상담이 진행됩니다. 상담 날짜와 시간은 반별로 조율됩니다. \n4월 특별활동비 안내: 체육(만2~5세) 13,000원, 음악(만2~5세) 14,000원, 영어(만3~5세) 38,700원. \n야간연장 및 토요보육 신청은 사무실로 사전 신청 바랍니다. 야간연장 보육은 신청서 제출 필요.",
   "user_id": 0,
   "baby_id": 0
+}
 }
 
 ```
@@ -322,35 +255,35 @@ curl -X 'POST' \
     {
       "text": "오늘은 지수가 아이스크림 가게 역할놀이를 하기로 했어요! 지수는 아이스크림 가게의 주인으로 변신했답니다. '어서 오세요! 어떤 아이스크림을 원하세요?'라고 외치며, 친구들을 맞이했어요. 🍨",
       "illustration_prompt": "A cheerful child, 지수, wearing an apron and a hat, standing behind a colorful ice cream counter with various ice cream flavors and toppings.",
-      "image_url": "short_url"
+      "illustration": "base64_incoding_value"
     },
     {
       "text": "지수는 친구들에게 다양한 맛의 아이스크림을 만들어 주었어요. '이건 딸기 아이스크림이에요! 그리고 이건 초코 아이스크림!' 친구들은 신나서 아이스크림을 먹으며 즐거운 시간을 보냈어요. 그런데 갑자기, 아이스크림 가게의 문이 열리더니, 마법의 요정이 나타났어요! 🧚‍♀️",
       "illustration_prompt": "A magical fairy with sparkling wings appearing in an ice cream shop, surrounded by colorful ice cream cones and happy children.",
-      "image_url": "short_url"
+      "illustration": "base64_incoding_value"
     },
     {
       "text": "요정은 지수에게 말했어요. '지수야, 너의 아이스크림 가게는 마법의 힘을 가지고 있어! 아이스크림을 먹으면 놀이터로 순간 이동할 수 있어!' 지수는 놀라서 '정말요?'라고 물었어요. 요정은 고개를 끄덕이며, 지수와 친구들에게 마법의 아이스크림을 주었어요. 🍭",
       "illustration_prompt": "The fairy handing out magical ice cream cones to 지수 and her friends, with sparkles and a magical aura around them.",
-      "image_url": "short_url"
+      "illustration": "base64_incoding_value"
     },
     {
       "text": "지수와 친구들은 마법의 아이스크림을 한 입 먹자, 눈 깜짝할 사이에 놀이터로 이동했어요! 놀이터는 환상적인 색깔로 가득 차 있었고, 신나는 놀이기구들이 가득했어요. '와! 신난다!' 지수는 신나서 미끄럼틀을 타고, 그네를 탔어요. 🎠",
       "illustration_prompt": "A vibrant playground filled with colorful slides and swings, with 지수 and her friends joyfully playing.",
-      "image_url": "short_url"
+      "illustration": "base64_incoding_value"
     },
     {
       "text": "놀이터에서 신나게 놀다가, 지수는 붓과 물감을 발견했어요. '이걸로 그림을 그려볼까?' 지수는 친구들과 함께 멋진 그림을 그리기 시작했어요. 그들은 하늘을 날고 있는 아이스크림과 마법의 요정을 그렸답니다. 🎨",
       "illustration_prompt": "지수 and her friends painting a colorful mural of flying ice cream and a magical fairy, with paint splatters around them.",
-      "image_url": "short_url"
+      "illustration": "base64_incoding_value"
     },
     {
       "text": "그림을 다 그리고 나니, 지수는 오늘의 모험이 정말 특별하다는 것을 느꼈어요. '오늘은 정말 즐거운 날이었어!' 지수는 친구들과 함께 웃으며, 마법의 아이스크림 가게로 돌아갔답니다. 그리고 그들은 다시 만날 것을 약속했어요. 🌈",
       "illustration_prompt": "지수 and her friends happily walking back to the ice cream shop, with smiles on their faces and colorful ice cream cones in their hands.",
-      "image_url": "short_url"
+      "illustration": "base64_incoding_value"
     }
   ],
-  "title_img_path": "short_url",
+  "cover_illustration": "base64_incoding_value",
   "user_id": 0,
   "baby_id": 0
 }
