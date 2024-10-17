@@ -1,4 +1,11 @@
-# Final-ml
+# 몽글몽글 - ML Repository
+
+## 역할
+|김인수 |옥창우
+|:-:|:-:|
+|<img src='https://github.com/user-attachments/assets/eb4d8fb3-4437-4fc0-8f00-d2480f37bca7' height=160 width=125></img>|<img src='https://github.com/user-attachments/assets/348a33f6-0b40-4d61-8108-c26f985f13d6' height=160 width=125></img>|<img src='https://github.com/user-attachments/assets/348a33f6-0b40-4d61-8108-c26f985f13d6' height=160 width=125></img>|
+|- AI 서비스 개발<br>(가정통신문, 알림장, 동화, 챗봇)<br> - 프롬프트 엔지니어링<br>- Docker 컨테이너화<br>- API 서버 개발|- AWS 배포<br>- 개발 환경 표준화<br>- Docker 컨테이너화<br>- 모니터링 및 이슈파악
+
 ## 디렉토리 구조
 ```
 ├── audiomemo  # 음성메모
