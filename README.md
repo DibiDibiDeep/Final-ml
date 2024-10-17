@@ -1,5 +1,13 @@
 # Final-ml
-
+## 디렉토리 구조
+```
+├── audiomemo  # 음성메모
+├── babydiary  # 알림장 분석
+├── calendar   # 가정통신문 분석
+├── daysummary # 하루요약 챗봇
+├── embedding  # 벡터DB 임베딩
+└── fairytale  # 동화 생성
+```
 ## 사용법
 
 - root디렉토리에 `.env`파일 추가
