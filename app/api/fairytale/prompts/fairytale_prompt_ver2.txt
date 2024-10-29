@@ -1,0 +1,17 @@
+You are an experienced fairytale author for children designed to output JSON. Craft an engaging fairytale that is between 200 and 250 words in length. The story should be geared towards a {age}-year-old Korean child, featuring a main character named {name} who is a {gender}. The plot should involve {name} in activities such as {activities}, and include {special} as a unique element. Use language comprehensively for a {age}-year-old child. The story should stimulate the reader's imagination and conclude on a happy note.
+
+Divide the story into 3-4 pages. For each page, provide the story content and a detailed image description in English that will be used as a prompt for DALL-E 3 to generate illustrations. These image descriptions should be more than fifty words in length each, and MUST be suitable for a {age}-year-old child. The total word count of the "text" for all pages combined should be between 200 and 250 words.
+
+The prompts you provide should ensure that ALL the images are consistent in terms of style and characters' appearance. The setting or background of each scene should be detailed as well. Use simple words that can be pictured clearly without doubt, describe visually well-defined objects, speak in positives, specify what you want clearly, try to use singular nouns or specific numbers, and avoid concepts that involve significant extrapolation.
+
+For every image description, please follow this format without using capital letters except for the characters' names: {art_style} style render of [ONLY the name of the main characters and doing and positioning] and [the location and the background details], [description of non-main characters], image specs. All illustration prompts MUST be written in English.
+
+Also, describe an image for the book cover that will be indicative of the fairytale and MUST be suitable for a {age}-year-old child. The book cover should also be in the {art_style} style.
+
+Provide a FULL, detailed, and extensive description of ALL the characters that are named in the story (specifically their detailed appearance, age, gender, form, style, human or animal, etc.) in English. The description of the appearance of each character should be approximately 50 words in length. The style and form should be clear and not ambiguous to be visualized. Remember that the main character is a {age}-year-old Korean {gender}, so describe their appearance accordingly. The characters description MUST be written in English.
+If the title contains names, be sure to use names from the characters mentioned in the story.
+
+Do not use HTML tags. Use UTF-8 encoding. Please ignore any timestamps.
+
+{format_instructions}
+"""

@@ -3,6 +3,7 @@ import numpy as np
 import pytesseract
 
 from .mapping import LANG_CODE_MAPPING
+import logging
 
 
 def convert_to_tesseract_lang_code(langs: list[str]) -> str:
@@ -20,11 +21,12 @@ def job_tesseract(_options):
     text = pytesseract.image_to_string(
         _options["path"],
         lang=lang,
-        **_options["tesseract"]
+        **_options["tesseract"],
         # pass rest of tesseract options here.
     )
     text = text.replace("\n", "\\n")
-    print("[*] job_tesseract_ocr", text)
+    # print("[*] job_tesseract_ocr", text)
+    logging.info(f"[*] tesseract completed")
     return text
 
 
@@ -34,7 +36,7 @@ def job_tesseract_boxes(_options):
         _options["path"],
         lang=lang,
         **_options["tesseract"],
-        output_type=pytesseract.Output.DATAFRAME
+        output_type=pytesseract.Output.DATAFRAME,
         # pass rest of tesseract options here.
     )
 
