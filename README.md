@@ -1,5 +1,5 @@
 # 몽글몽글 - ML Repository
-
+[전체 프로젝트 레포지토리 링크](https://github.com/DibiDibiDeep/final-project/tree/readme?tab=readme-ov-file)
 ## 역할
 |김인수 |옥창우
 |:-:|:-:|
