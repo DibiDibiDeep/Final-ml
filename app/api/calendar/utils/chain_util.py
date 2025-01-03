@@ -9,7 +9,7 @@ load_dotenv()
 
 openai_api_key = os.getenv("OPENAI_API_KEY")
 langchain_api_key = os.getenv("LANGCHAIN_API_KEY")
-llm_model = os.getenv("LLM_MODEL")
+llm_model = os.getenv("CAL_LLM_MODEL")
 
 template_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "prompts")
 calendar_prompt_path = os.path.join(template_path, "calendar_betterocr_ver3.txt")

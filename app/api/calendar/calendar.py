@@ -9,7 +9,7 @@ from app.api.calendar.models import ImageInput
 from app.api.calendar.BetterOCR import betterocr
 from app.api.calendar.utils.s3_util import parse_s3_url, set_s3_client
 from app.api.calendar.utils.chain_util import setup_chain
-
+from app.api.calendar.utils.ocr_util import sort_boxes
 from fastapi import HTTPException, APIRouter
 
 load_dotenv()
@@ -66,15 +66,18 @@ image_path: {image_path}
         logging.info(f"!!!Downloaded OCR target!!! : {ocr_target}")
         # Perform OCR
         logging.info("OCR Start...")
-        ocr_result = betterocr.detect_text(
+        ocr_result = betterocr.detect_boxes(
             ocr_target,
-            ["ko", "en"],  # language codes (from EasyOCR)
+            ["ko"],  # language codes (from EasyOCR)
             openai={
                 "model": "gpt-4o-mini",
             },
+            tesseract={
+                "config": "--tessdata-dir app/api/calendar/BetterOCR/betterocr/wrappers/tesseract/tessdata"
+            },
         )
         logging.info("OCR End...")
-        logging.info(f"\n\nOCR Result:\n{ocr_result}")
+        # logging.info(f"\n\nOCR Result:\n{ocr_result}")
 
         # 임시 파일 삭제
         if is_s3:
@@ -83,7 +86,7 @@ image_path: {image_path}
         if not ocr_result == "Invalid image type":
             # chain을 사용하여 처리
             logging.info("LLM Generate Answer Start...")
-            response = chain.invoke({"ocr_result": ocr_result})
+            response = chain.invoke({"ocr_result": sort_boxes(ocr_result)})
             logging.info("LLM Generate Answer End...")
             logging.info(f"\n\nLLM Result:\n{response}")
 

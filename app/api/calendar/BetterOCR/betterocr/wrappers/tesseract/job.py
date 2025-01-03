@@ -64,5 +64,5 @@ def job_tesseract_boxes(_options):
                 "text": line,
             }
         )
-
+    logging.info(f"[*] tesseract_boxes completed")
     return boxes

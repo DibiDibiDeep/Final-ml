@@ -1,6 +1,7 @@
 import easyocr
 import logging
 
+
 def job_easy_ocr(_options):
     reader = easyocr.Reader(_options["lang"])
     text = reader.readtext(_options["path"], detail=0)
@@ -15,4 +16,5 @@ def job_easy_ocr_boxes(_options):
     boxes = reader.readtext(_options["path"], output_format="dict")
     for box in boxes:
         box["box"] = box.pop("boxes")
+    logging.info(f"[*] easy_ocr_boxes completed")
     return boxes
